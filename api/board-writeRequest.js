@@ -2,43 +2,54 @@ import { getServerUrl } from '../utils/function.js';
 import { requestJson } from '../utils/request.js';
 
 export const createPost = boardData => {
-    const result = requestJson(`${getServerUrl()}/v1/posts`, {
+    const result = requestJson(`${getServerUrl()}/posts`, {
         method: 'POST',
-        body: JSON.stringify(boardData),
+        body: JSON.stringify({
+            title: boardData.title,
+            content: boardData.content,
+            post_image: boardData.attachFileUrl,
+        }),
         headers: {
             'Content-Type': 'application/json',
         },
-        credentials: 'include',
     });
     return result;
 };
 
 export const updatePost = (postId, boardData) => {
-    const result = requestJson(`${getServerUrl()}/v1/posts/${postId}`, {
+    const result = requestJson(`${getServerUrl()}/posts/${postId}`, {
         method: 'PATCH',
-        body: JSON.stringify(boardData),
+        body: JSON.stringify({
+            title: boardData.title,
+            content: boardData.content,
+            post_image: boardData.attachFileUrl,
+        }),
         headers: {
             'Content-Type': 'application/json',
         },
-        credentials: 'include',
     });
 
     return result;
 };
 
-export const fileUpload = formData => {
-    const result = requestJson(getServerUrl() + '/v1/posts/upload/attach-file', {
+export const fileUpload = ({ name, dataUrl }) => {
+    const result = requestJson(`${getServerUrl()}/posts/images`, {
         method: 'POST',
-        body: formData,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            post_image_name: name,
+            post_image_data: dataUrl,
+        }),
     });
 
     return result;
 };
 
 export const getBoardItem = postId => {
-    const result = requestJson(getServerUrl() + `/v1/posts/${postId}`, {
+    const result = requestJson(`${getServerUrl()}/posts/${postId}`, {
         method: 'GET',
-        credentials: 'include',
     });
 
     return result;

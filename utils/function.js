@@ -1,3 +1,5 @@
+import { getAccessToken, removeAccessToken } from './request.js';
+
 export const getServerUrl = () => {
     const configUrl =
         typeof window !== 'undefined' &&
@@ -23,27 +25,46 @@ export const resolveImageUrl = (url, fallback = null) => {
 };
 
 export const serverSessionCheck = async () => {
-    const res = await fetch(`${getServerUrl()}/v1/auth/check`, {
+    const accessToken = getAccessToken();
+
+    if (!accessToken) {
+        return null;
+    }
+
+    const response = await fetch(`${getServerUrl()}/users/me`, {
         method: 'GET',
-        credentials: 'include',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        },
     });
-    return res;
+
+    if (response.status === 401) {
+        removeAccessToken();
+    }
+
+    return response;
 };
 
 export const authCheck = async () => {
     const HTTP_OK = 200;
     const response = await serverSessionCheck();
-    if (!response || response.status !== HTTP_OK)
+
+    if (!response || response.status !== HTTP_OK) {
         location.href = '/html/login.html';
+        return null;
+    }
+
     return response;
 };
 
 export const authCheckReverse = async () => {
     const response = await serverSessionCheck();
+
     if (response && response.ok) {
         location.href = '/';
     }
 };
+
 // 이메일 유효성 검사
 export const validEmail = email => {
     const REGEX =

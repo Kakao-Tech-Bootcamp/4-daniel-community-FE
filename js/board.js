@@ -3,7 +3,6 @@ import Dialog from '../component/dialog/dialog.js';
 import Header from '../component/header/header.js';
 import {
     authCheck,
-    getServerUrl,
     prependChild,
     padTo2Digits,
     resolveImageUrl,
@@ -21,6 +20,40 @@ const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
 const MAX_COMMENT_LENGTH = 1000;
 const HTTP_NOT_AUTHORIZED = 401;
 const HTTP_OK = 200;
+
+const normalizeUserInfo = data => ({
+    userId: data.userId || data.user_id || data.idx,
+    profileImageUrl: data.profileImageUrl || data.profile_image || null,
+});
+
+const normalizePostDetail = data => ({
+    id: data.id || data.post_id,
+    title: data.title,
+    content: data.content,
+    createdAt: data.createdAt || data.created_at,
+    postImage:
+        data.postImage ||
+        data.post_image ||
+        data.fileUrl ||
+        data.filePath ||
+        null,
+    likeCount: data.likeCount ?? data.likes ?? 0,
+    viewCount: data.viewCount ?? data.views ?? 0,
+    commentCount: data.commentCount ?? data.comments_count ?? 0,
+    isLiked: Boolean(data.isLiked || data.is_liked),
+    writerId:
+        data.writerId ||
+        data.userId ||
+        data.user_id ||
+        (data.author && (data.author.userId || data.author.user_id)) ||
+        null,
+    nickname: data.nickname || (data.author && data.author.nickname) || '',
+    profileImage:
+        data.profileImage ||
+        (data.author &&
+            (data.author.profileImageUrl || data.author.profile_image)) ||
+        null,
+});
 
 const formatCount = value => {
     const count = Number(value);
@@ -42,19 +75,20 @@ const getQueryString = name => {
 
 const getBoardDetail = async postId => {
     const { ok, data } = await getPost(postId);
-    if (!ok)
-        return new Error('게시글 정보를 가져오는데 실패하였습니다.');
-    return data;
+    if (!ok) {
+        throw new Error('게시글 정보를 가져오는데 실패하였습니다.');
+    }
+    return normalizePostDetail(data);
 };
 
 const setBoardDetail = data => {
-    // 헤드 정보
     const titleElement = document.querySelector('.title');
     const createdAtElement = document.querySelector('.createdAt');
     const imgElement = document.querySelector('.img');
     const nicknameElement = document.querySelector('.nickname');
 
     titleElement.textContent = data.title;
+
     const date = new Date(data.createdAt);
     const formattedDate = `${date.getFullYear()}-${padTo2Digits(date.getMonth() + 1)}-${padTo2Digits(date.getDate())} ${padTo2Digits(date.getHours())}:${padTo2Digits(date.getMinutes())}:${padTo2Digits(date.getSeconds())}`;
     createdAtElement.textContent = formattedDate;
@@ -66,24 +100,26 @@ const setBoardDetail = data => {
 
     nicknameElement.textContent = data.nickname;
 
-    // 바디 정보
     const contentImgElement = document.querySelector('.contentImg');
-    const fileUrl = data.fileUrl || resolveImageUrl(data.filePath);
+    contentImgElement.innerHTML = '';
+
+    const fileUrl = resolveImageUrl(data.postImage);
     if (fileUrl) {
-        console.log(fileUrl);
         const img = document.createElement('img');
         img.src = fileUrl;
         contentImgElement.appendChild(img);
     }
+
     const contentElement = document.querySelector('.content');
     contentElement.textContent = data.content;
 
     const likeButtonElement = document.querySelector('.likeButton');
     const likeCountElement = likeButtonElement.querySelector('h3');
     let isLiked = Boolean(data.isLiked);
+    let likeCount = Number(data.likeCount) || 0;
     let isLikeLoading = false;
 
-    likeCountElement.textContent = formatCount(data.likeCount);
+    likeCountElement.textContent = formatCount(likeCount);
     setLikeButtonState(likeButtonElement, isLiked);
 
     likeButtonElement.addEventListener('click', async () => {
@@ -92,40 +128,30 @@ const setBoardDetail = data => {
 
         try {
             if (!isLiked) {
-                const { ok, status, code, data: likeData } = await likePost(
-                    data.id,
-                );
+                const { ok, status, data: likeData } = await likePost(data.id);
+
                 if (ok) {
                     isLiked = true;
+                    likeCount = likeData && likeData.like_count !== undefined
+                        ? Number(likeData.like_count)
+                        : likeCount + 1;
                     setLikeButtonState(likeButtonElement, isLiked);
-                    if (likeData && likeData.likeCount !== undefined) {
-                        likeCountElement.textContent = formatCount(
-                            likeData.likeCount,
-                        );
-                    }
-                } else if (status === 409 && code === 'POST_ALREADY_LIKED') {
-                    isLiked = true;
-                    setLikeButtonState(likeButtonElement, isLiked);
+                    likeCountElement.textContent = formatCount(likeCount);
                 } else if (status === HTTP_NOT_AUTHORIZED) {
                     window.location.href = '/html/login.html';
                 } else {
                     Dialog('좋아요 실패', '좋아요 처리에 실패하였습니다.');
                 }
             } else {
-                const { ok, status, code, data: likeData } = await unlikePost(
-                    data.id,
-                );
+                const { ok, status, data: likeData } = await unlikePost(data.id);
+
                 if (ok) {
                     isLiked = false;
+                    likeCount = likeData && likeData.like_count !== undefined
+                        ? Number(likeData.like_count)
+                        : Math.max(0, likeCount - 1);
                     setLikeButtonState(likeButtonElement, isLiked);
-                    if (likeData && likeData.likeCount !== undefined) {
-                        likeCountElement.textContent = formatCount(
-                            likeData.likeCount,
-                        );
-                    }
-                } else if (status === 409 && code === 'POST_ALREADY_UNLIKED') {
-                    isLiked = false;
-                    setLikeButtonState(likeButtonElement, isLiked);
+                    likeCountElement.textContent = formatCount(likeCount);
                 } else if (status === HTTP_NOT_AUTHORIZED) {
                     window.location.href = '/html/login.html';
                 } else {
@@ -141,17 +167,22 @@ const setBoardDetail = data => {
     viewCountElement.textContent = formatCount(data.viewCount);
 
     const commentCountElement = document.querySelector('.commentCount h3');
-    commentCountElement.textContent = data.commentCount.toLocaleString();
+    commentCountElement.textContent = Number(data.commentCount).toLocaleString();
 };
 
 const setBoardModify = async (data, myInfo) => {
-    if (myInfo.idx === data.writerId) {
+    if (
+        data.writerId &&
+        myInfo.userId &&
+        Number(myInfo.userId) === Number(data.writerId)
+    ) {
         const modifyElement = document.querySelector('.hidden');
         modifyElement.classList.remove('hidden');
 
-        const modifyBtnElement = document.querySelector('#deleteBtn');
+        const deleteBtnElement = document.querySelector('#deleteBtn');
         const postId = getQueryString('id');
-        modifyBtnElement.addEventListener('click', () => {
+
+        deleteBtnElement.addEventListener('click', () => {
             Dialog(
                 '게시글을 삭제하시겠습니까?',
                 '삭제한 내용은 복구 할 수 없습니다.',
@@ -166,8 +197,8 @@ const setBoardModify = async (data, myInfo) => {
             );
         });
 
-        const modifyBtnElement2 = document.querySelector('#modifyBtn');
-        modifyBtnElement2.addEventListener('click', () => {
+        const modifyBtnElement = document.querySelector('#modifyBtn');
+        modifyBtnElement.addEventListener('click', () => {
             window.location.href = `/html/board-modify.html?postId=${data.id}`;
         });
     }
@@ -182,13 +213,17 @@ const getBoardComment = async id => {
 
 const setBoardComment = (data, myInfo) => {
     const commentListElement = document.querySelector('.commentList');
+
     if (commentListElement) {
-        data.map(event => {
+        data.forEach(event => {
+            const commentId = event.id || event.comment_id;
+            const postId = event.postId || event.post_id || getQueryString('id');
+
             const item = CommentItem(
                 event,
                 myInfo.userId,
-                event.postId,
-                event.id,
+                postId,
+                commentId,
             );
             commentListElement.appendChild(item);
         });
@@ -220,6 +255,7 @@ const inputComment = async () => {
             MAX_COMMENT_LENGTH,
         );
     }
+
     if (textareaElement.value === '') {
         commentBtnElement.disabled = true;
         commentBtnElement.style.backgroundColor = '#ACA0EB';
@@ -231,38 +267,39 @@ const inputComment = async () => {
 
 const init = async () => {
     try {
-        const data = await authCheck();
-        const myInfoResult = await data.json();
-        if (data.status !== HTTP_OK) {
+        const response = await authCheck();
+        const myInfoResult = await response.json();
+
+        if (response.status !== HTTP_OK) {
             throw new Error('사용자 정보를 불러오는데 실패하였습니다.');
         }
 
-        const myInfo = myInfoResult.data;
+        if (response.status === HTTP_NOT_AUTHORIZED) {
+            window.location.href = '/html/login.html';
+            return;
+        }
+
+        const myInfo = normalizeUserInfo(myInfoResult.data);
         const commentBtnElement = document.querySelector('.commentInputBtn');
         const textareaElement = document.querySelector(
             '.commentInputWrap textarea',
         );
+
         textareaElement.addEventListener('input', inputComment);
         commentBtnElement.addEventListener('click', addComment);
         commentBtnElement.disabled = true;
-        console.log(myInfo);
-        if (data.status === HTTP_NOT_AUTHORIZED) {
-            window.location.href = '/html/login.html';
-        }
+
         const profileImage = resolveImageUrl(
             myInfo.profileImageUrl,
             DEFAULT_PROFILE_IMAGE,
         );
 
-        prependChild(document.body, Header('커뮤니티', 2, profileImage));
+        prependChild(document.body, Header('게시글', 2, profileImage));
 
         const pageId = getQueryString('id');
-
         const pageData = await getBoardDetail(pageId);
 
-        if (parseInt(pageData.userId, 10) === parseInt(myInfo.userId, 10)) {
-            setBoardModify(pageData, myInfo);
-        }
+        setBoardModify(pageData, myInfo);
         setBoardDetail(pageData);
 
         getBoardComment(pageId).then(data => setBoardComment(data, myInfo));

@@ -2,24 +2,26 @@ import { getServerUrl } from '../utils/function.js';
 import { requestJson } from '../utils/request.js';
 
 export const userSignup = async data => {
-    const result = await requestJson(`${getServerUrl()}/v1/auth/signup`, {
+    const result = await requestJson(`${getServerUrl()}/users/signup`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+            email: data.email,
+            password: data.password,
+            nickname: data.nickname,
+            profile_image: data.profileImageUrl,
+        }),
     });
     return result;
 };
 
 export const checkEmail = async email => {
     const result = await requestJson(
-        `${getServerUrl()}/v1/users/email/check?email=${email}`,
+        `${getServerUrl()}/users/emails/${encodeURIComponent(email)}`,
         {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
         },
     );
     return result;
@@ -27,24 +29,24 @@ export const checkEmail = async email => {
 
 export const checkNickname = async nickname => {
     const result = await requestJson(
-        `${getServerUrl()}/v1/users/nickname/check?nickname=${nickname}`,
+        `${getServerUrl()}/users/nicknames/${encodeURIComponent(nickname)}`,
         {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
         },
     );
     return result;
 };
 
-export const fileUpload = async file => {
-    const result = await requestJson(
-        `${getServerUrl()}/v1/users/upload/profile-image`,
-        {
-            method: 'POST',
-            body: file,
+export const fileUpload = async ({ name, dataUrl }) => {
+    const result = await requestJson(`${getServerUrl()}/users/profile-images`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
         },
-    );
+        body: JSON.stringify({
+            profile_image_name: name,
+            profile_image_data: dataUrl,
+        }),
+    });
     return result;
 };

@@ -7,6 +7,28 @@
     box-sizing: border-box;
 }
 
+html {
+    font-family:
+            -apple-system,
+            BlinkMacSystemFont,
+            'Apple SD Gothic Neo',
+            'Noto Sans KR',
+            'Malgun Gothic',
+            '맑은 고딕',
+            'Segoe UI',
+            sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+body,
+button,
+input,
+textarea,
+select {
+    font-family: inherit;
+}
+
 body {
     position: relative;
     display: flex;
@@ -14,7 +36,7 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    margin: 0 calc(50vw - 212.5px);
+    margin: 0 calc(50vw - 250px);
     border-radius: 4px;
     border: 1px solid rgba(0, 0, 0, 0.3);
     background-color: #fff;
@@ -45,13 +67,11 @@ body {
 }
 
 .background::before {
-    content: ''; /* 가상 요소에는 content 속성이 필수 */
-    position: absolute; /* 배경 위에 오버레이로 깔림 */
+    content: '';
+    position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5); /* 어두운 오버레이 색상과 투명도 설정 */
-    /* rgba의 마지막 값(0.5)은 투명도를 의미하며, 0에서 1 사이의 값을 가질 수 있습니다.
-       0에 가까울수록 투명해지고, 1에 가까울수록 불투명해집니다. */
+    background: rgba(0, 0, 0, 0.5);
 }

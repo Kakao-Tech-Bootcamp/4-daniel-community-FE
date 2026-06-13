@@ -2,24 +2,22 @@ import { getServerUrl } from '../utils/function.js';
 import { requestJson } from '../utils/request.js';
 
 export const userModify = async changeData => {
-    const result = await requestJson(`${getServerUrl()}/v1/users/me`, {
-        method: 'PUT',
+    const result = await requestJson(`${getServerUrl()}/users/me`, {
+        method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',
         },
-        credentials: 'include',
-        body: JSON.stringify(changeData),
+        body: JSON.stringify ({
+            nickname: changeData.nickname,
+            profile_image: changeData.profileImageUrl,
+        }),
     });
     return result;
 };
 
 export const userDelete = async () => {
-    const result = await requestJson(`${getServerUrl()}/v1/users/me`, {
+    const result = await requestJson(`${getServerUrl()}/users/me`, {
         method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        credentials: 'include',
     });
     return result;
 };

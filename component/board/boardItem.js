@@ -10,49 +10,42 @@ const BoardItem = (
     commentCount,
     likeCount,
 ) => {
-    // 파라미터 값이 없으면 리턴
-    if (
-        !date ||
-        !title ||
-        viewCount === undefined ||
-        likeCount === undefined ||
-        commentCount === undefined ||
-        !writer
-    ) {
-        return;
+    if (!postId || !date || !title) {
+        return '';
     }
 
-    // 날짜 포맷 변경 YYYY-MM-DD hh:mm:ss
-    const dateObj = new Date(date);
-    const year = dateObj.getFullYear();
-    const month = dateObj.getMonth() + 1;
-    const day = dateObj.getDate();
-    const hours = dateObj.getHours();
-    const minutes = dateObj.getMinutes();
-    const seconds = dateObj.getSeconds();
+    const safeViewCount = viewCount ?? 0;
+    const safeCommentCount = commentCount ?? 0;
+    const safeLikeCount = likeCount ?? 0;
+    const safeWriter = writer || '알 수 없음';
 
-    const formattedDate = `${year}-${padTo2Digits(month)}-${padTo2Digits(day)} ${padTo2Digits(hours)}:${padTo2Digits(minutes)}:${padTo2Digits(seconds)}`;
+    const dateObj = new Date(date);
+    const isValidDate = !Number.isNaN(dateObj.getTime());
+    const formattedDate = isValidDate
+        ? `${dateObj.getFullYear()}-${padTo2Digits(dateObj.getMonth() + 1)}-${padTo2Digits(dateObj.getDate())} ${padTo2Digits(dateObj.getHours())}:${padTo2Digits(dateObj.getMinutes())}:${padTo2Digits(dateObj.getSeconds())}`
+        : '';
 
     const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
     const profileImageUrl = resolveImageUrl(imgUrl, DEFAULT_PROFILE_IMAGE);
-    // const API_HOST = getServerUrl();
 
     return `
-    <a href="/html/board.html?id=${postId}">
+    <a class="boardItemLink" href="/html/board.html?id=${postId}">
         <div class="boardItem">
             <h2 class="title">${title}</h2>
             <div class="info">
-                <h3 class="views">좋아요 <b>${likeCount}</b></h3>
-                <h3 class="views">댓글 <b>${commentCount}</b></h3>
-                <h3 class="views">조회수 <b>${viewCount}</b></h3>
+                <div class="counts">
+                    <h3>좋아요 ${safeLikeCount}</h3>
+                    <h3>댓글 ${safeCommentCount}</h3>
+                    <h3>조회수 ${safeViewCount}</h3>
+                </div>
                 <p class="date">${formattedDate}</p>
             </div>
             <div class="writerInfo">
-            <picture class="img">
-                <img src="${`${profileImageUrl}`}" alt="img">
-            </picture>
-            <h2 class="writer">${writer}</h2>
-        </div>
+                <picture class="img">
+                    <img src="${profileImageUrl}" alt="작성자 프로필">
+                </picture>
+                <h2 class="writer">${safeWriter}</h2>
+            </div>
         </div>
     </a>
 `;

@@ -1,20 +1,32 @@
 import BoardItem from '../component/board/boardItem.js';
 import Dialog from '../component/dialog/dialog.js';
 import Header from '../component/header/header.js';
-import { authCheck, getServerUrl, prependChild, resolveImageUrl } from '../utils/function.js';
+import { authCheck, prependChild, resolveImageUrl } from '../utils/function.js';
 import { getPosts, searchPosts } from '../api/indexRequest.js';
 
 const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
 const HTTP_NOT_AUTHORIZED = 401;
 const SCROLL_THRESHOLD = 0.9;
-const INITIAL_OFFSET = 5;
-const ITEMS_PER_LOAD = 5;
 const DEFAULT_SORT = 'recent';
+
 let currentKeyword = '';
 let currentSort = DEFAULT_SORT;
-let offset = 0;
+let currentCursor = null;
 let isEnd = false;
 let isProcessing = false;
+
+const normalizePost = data => ({
+    id: data.id || data.post_id,
+    createdAt: data.createdAt || data.created_at,
+    title: data.title,
+    viewCount: data.viewCount ?? data.views,
+    profileImageUrl:
+        data.author &&
+        (data.author.profileImageUrl || data.author.profile_image),
+    nickname: data.author ? data.author.nickname : null,
+    commentCount: data.commentCount ?? data.comments_count,
+    likeCount: data.likeCount ?? data.likes,
+});
 
 const updateSortVisibility = () => {
     const sortRow = document.querySelector('#searchSortRow');
@@ -24,20 +36,16 @@ const updateSortVisibility = () => {
     sortRow.setAttribute('aria-hidden', String(!isSearching));
 };
 
-// getBoardItem 함수
-const getBoardItem = async (offsetValue = 0, limitValue = 5) => {
+const getBoardItem = async () => {
     const result =
         currentKeyword.trim() === ''
-            ? await getPosts(offsetValue, limitValue)
-            : await searchPosts(
-                  currentKeyword,
-                  offsetValue,
-                  limitValue,
-                  currentSort,
-              );
+            ? await getPosts(currentCursor)
+            : await searchPosts(currentKeyword, currentCursor, currentSort);
+
     if (!result.ok) {
         throw new Error('Failed to load post list.');
     }
+
     return result.data;
 };
 
@@ -45,19 +53,22 @@ const setBoardItem = boardData => {
     const boardList = document.querySelector('.boardList');
     if (boardList && boardData) {
         const itemsHtml = boardData
-            .map(data =>
-                BoardItem(
-                    data.id,
-                    data.createdAt,
-                    data.title,
-                    data.viewCount,
-                    data.author ? data.author.profileImageUrl : null,
-                    data.author ? data.author.nickname : null,
-                    data.commentCount,
-                    data.likeCount,
-                ),
-            )
+            .map(data => {
+                const post = normalizePost(data);
+
+                return BoardItem(
+                    post.id,
+                    post.createdAt,
+                    post.title,
+                    post.viewCount,
+                    post.profileImageUrl,
+                    post.nickname,
+                    post.commentCount,
+                    post.likeCount,
+                );
+            })
             .join('');
+
         boardList.innerHTML += ` ${itemsHtml}`;
     }
 };
@@ -75,17 +86,22 @@ const loadBoardItems = async ({ reset = false } = {}) => {
 
     try {
         if (reset) {
-            offset = 0;
+            currentCursor = null;
             isEnd = false;
             resetBoardList();
         }
-        const items = await getBoardItem(offset, ITEMS_PER_LOAD);
-        if (!items || items.length === 0) {
+
+        const result = await getBoardItem();
+        const posts = result && result.posts ? result.posts : [];
+
+        if (posts.length === 0) {
             isEnd = true;
             return;
         }
-        setBoardItem(items);
-        offset += ITEMS_PER_LOAD;
+
+        setBoardItem(posts);
+        currentCursor = result.next_cursor;
+        isEnd = !result.has_more;
     } catch (error) {
         console.error('Error fetching items:', error);
         isEnd = true;
@@ -131,9 +147,7 @@ const addSortEvent = () => {
     });
 };
 
-// 스크롤 이벤트 추가
 const addInfinityScrollEvent = () => {
-    offset = INITIAL_OFFSET;
     isEnd = false;
     isProcessing = false;
 
@@ -157,13 +171,13 @@ const init = async () => {
         }
 
         const profileImageUrl = resolveImageUrl(
-            data.data.profileImageUrl,
+            data.data.profileImageUrl || data.data.profile_image,
             DEFAULT_PROFILE_IMAGE,
         );
 
         prependChild(
             document.body,
-            Header('Community', 0, profileImageUrl),
+            Header('게시판', 0, profileImageUrl),
         );
 
         updateSortVisibility();

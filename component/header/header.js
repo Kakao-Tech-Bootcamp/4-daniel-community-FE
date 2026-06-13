@@ -1,4 +1,5 @@
 import { getServerUrl } from '../../utils/function.js';
+import { getAccessToken, removeAccessToken } from '../../utils/request.js';
 
 const headerDropdownMenu = () => {
     const wrap = document.createElement('div');
@@ -13,13 +14,21 @@ const headerDropdownMenu = () => {
 
     modifyInfoLink.href = '/html/modifyInfo.html';
     modifyPasswordLink.href = '/html/modifyPassword.html';
+
     logoutLink.addEventListener('click', async () => {
+        const accessToken = getAccessToken();
+
         try {
-            await fetch(`${getServerUrl()}/v1/auth/logout`, {
-                method: 'POST',
-                credentials: 'include',
-            });
+            if (accessToken) {
+                await fetch(`${getServerUrl()}/users/logout`, {
+                    method: 'DELETE',
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                });
+            }
         } finally {
+            removeAccessToken();
             location.href = '/html/login.html';
         }
     });
@@ -72,7 +81,7 @@ const Header = (
         const Drop = headerDropdownMenu();
         Drop.classList.add('none');
 
-        profileElement.addEventListener('click', () => {
+        profileElement.addEventListener('click', event => {
             Drop.classList.toggle('none');
             event.stopPropagation();
         });
@@ -93,7 +102,7 @@ const Header = (
     return headerElement;
 };
 
-window.addEventListener('click', e => {
+window.addEventListener('click', () => {
     const dropMenu = document.querySelector('.drop');
     if (dropMenu && !dropMenu.classList.contains('none')) {
         dropMenu.classList.add('none');
