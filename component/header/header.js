@@ -64,7 +64,7 @@ const Header = (
         } else {
             leftBtnElement.addEventListener(
                 'click',
-                () => (location.href = '/'),
+                () => (location.href = '/html/index.html'),
             );
         }
     }
