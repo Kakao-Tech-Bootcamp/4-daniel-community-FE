@@ -65,7 +65,7 @@ jobs:
               "sudo docker run -d --name ${CONTAINER_NAME} --restart unless-stopped -p 8080:8080 ${IMAGE_NAME}",
               "sudo docker inspect --format='container image={{.Config.Image}} image id={{.Image}}' ${CONTAINER_NAME}",
               "sudo docker inspect --format='{{.Config.Image}}' ${CONTAINER_NAME} | grep -Fx '${IMAGE_NAME}'",
-              "sudo docker exec ${CONTAINER_NAME} node -e 'fetch(\"http://127.0.0.1:8080/\").then(response => { if (!response.ok) throw new Error(\"HTTP \" + response.status); return response.text(); }).then(html => { if (!html.includes(\"<title>KTB HUB |\")) throw new Error(\"Unexpected landing page\"); })'",
+              "sudo docker exec ${CONTAINER_NAME} node -e '(async () => { let lastError; for (let attempt = 1; attempt <= 15; attempt += 1) { try { const response = await fetch(\"http://127.0.0.1:8080/\"); const html = await response.text(); if (response.ok && html.includes(\"<title>KTB HUB |\")) return; lastError = new Error(\"Unexpected response: \" + response.status); } catch (error) { lastError = error; } await new Promise(resolve => setTimeout(resolve, 2000)); } throw lastError; })().catch(error => { console.error(error); process.exit(1); })' || { sudo docker logs ${CONTAINER_NAME}; exit 1; }",
               "sudo docker image prune --force"
             ],
             "executionTimeout": ["3600"]
