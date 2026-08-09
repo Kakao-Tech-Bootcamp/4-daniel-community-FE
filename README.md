@@ -6,37 +6,40 @@
 > 학생들은 게시글을 작성하고 댓글과 좋아요로 소통하며 프로필과 계정을 관리할 수 있습니다
 <br>
 
-## 주요 기능
+## 주요기능
 
-### 사용자 및 인증
-
-- 중복확인을 포함한 회원가입
-- 이메일과 비밀번호 로그인
-- 토큰기반 인증과 만료 처리
-- 프로필이미지와 닉네임 수정
-- 새로운 비밀번호로 변경
-- 로그아웃과 회원탈퇴
-
-### 커뮤니티
-
-- 커서 기반 페이지네이션
-- 키워드를 통한 게시글 검색
-- 게시글 작성·조회·수정·삭제
-- 게시글 이미지 업로드
-- 좋아요 등록과 취소
-- 댓글 작성·수정·삭제
+<table>
+  <tr>
+    <th width="500px" align="center">계정관리</th>
+    <th width="500px" align="center">커뮤니티</th>
+  </tr>
+  <tr>
+    <td width="500px" valign="top">
+      • 중복확인을 포함한 회원가입<br>
+      • 이메일과 비밀번호를 통한 로그인<br>
+      • 토큰기반 인증과 만료처리<br>
+      • 프로필이미지와 닉네임 수정<br>
+      • 새로운 비밀번호로 변경<br>
+      • 로그아웃과 회원탈퇴
+    </td>
+    <td width="500px" valign="top">
+      • 커서기반 페이지네이션<br>
+      • 키워드로 게시글 검색<br>
+      • 게시글 작성·조회·수정·삭제<br>
+      • 게시글이미지 업로드<br>
+      • 좋아요 등록과 취소<br>
+      • 댓글 작성·수정·삭제
+    </td>
+  </tr>
+</table>
 <br>
 
-
 ## 기술 스택
-
-| 구분 | 기술 |
-| --- |------------------|
-| Frontend | HTML5 & CSS3 |
-| Web server | Node.js 22 & Express |
-| Authentication | Bearer Token |
-| Container | Docker |
-| CI/CD | GitHub Actions |
+- Frontend | HTML5 & CSS3
+- Web server | Node.js 22 & Express
+- Authentication | Bearer Token
+- Container | Docker
+- CI/CD | GitHub Actions
 <br>
 
 ## 서비스 화면
