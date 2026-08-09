@@ -47,18 +47,25 @@ jobs:
         env:
           INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
           IMAGE_NAME: ${{ env.IMAGE_REPOSITORY }}:${{ github.sha }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
+          docker_password_b64=$(printf '%s' "$DOCKER_PASSWORD" | base64 | tr -d '\n')
+          echo "::add-mask::${docker_password_b64}"
+
           cat > ssm-parameters.json <<JSON
           {
             "commands": [
               "set -eu",
+              "trap 'sudo docker logout >/dev/null 2>&1 || true' EXIT",
+              "printf '%s' '${docker_password_b64}' | base64 --decode | sudo docker login --username '${DOCKER_USERNAME}' --password-stdin",
               "sudo docker pull ${IMAGE_NAME}",
               "sudo docker stop ${CONTAINER_NAME} || true",
               "sudo docker rm ${CONTAINER_NAME} || true",
               "sudo docker run -d --name ${CONTAINER_NAME} --restart unless-stopped -p 8080:8080 ${IMAGE_NAME}",
               "sudo docker inspect --format='container image={{.Config.Image}} image id={{.Image}}' ${CONTAINER_NAME}",
               "sudo docker inspect --format='{{.Config.Image}}' ${CONTAINER_NAME} | grep -Fx '${IMAGE_NAME}'",
-              "curl --fail --silent --show-error --retry 12 --retry-connrefused --retry-delay 2 --max-time 5 http://localhost:8080/ | grep -q '<title>KTB HUB |'"
+              "sudo docker exec ${CONTAINER_NAME} node -e 'fetch(\"http://127.0.0.1:8080/\").then(response => { if (!response.ok) throw new Error(\"HTTP \" + response.status); return response.text(); }).then(html => { if (!html.includes(\"<title>KTB HUB |\")) throw new Error(\"Unexpected landing page\"); })'"
             ]
           }
           JSON
