@@ -61,7 +61,7 @@ export const authCheckReverse = async () => {
     const response = await serverSessionCheck();
 
     if (response && response.ok) {
-        location.href = '/';
+        location.href = '/html/index.html';
     }
 };
 
@@ -84,7 +84,16 @@ export const validNickname = nickname => {
 };
 
 export const prependChild = (parent, child) => {
-    parent.insertBefore(child, parent.firstChild);
+    const firstElement = parent.firstElementChild;
+    const skipLink =
+        firstElement && firstElement.classList.contains('skipLink')
+            ? firstElement
+            : null;
+
+    parent.insertBefore(
+        child,
+        skipLink ? skipLink.nextSibling : parent.firstChild,
+    );
 };
 
 /**

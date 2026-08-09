@@ -1,48 +1,79 @@
 <!doctype html>
-<html lang="kr">
+<html lang="ko">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#fee500" />
     <script src="/config.js"></script>
-    <title>게시글 작성</title>
-    <link
-            rel="stylesheet"
-            href="../css/board-write.css"
-            crossorigin="anonymous"
-    />
+    <link rel="stylesheet" href="/css/board-write.css" crossorigin="anonymous" />
+    <title>새 글 작성 | KTB HUB</title>
 </head>
-<body>
-<div class="wrap">
-    <h2>게시글 작성</h2>
-    <div class="inputBox">
-        <label>제목*</label>
-        <input
+<body class="appPage editorPage">
+<a class="skipLink" href="#mainContent">본문으로 바로가기</a>
+<main class="wrap editorWrap" id="mainContent">
+    <header class="editorHeading">
+        <p class="editorEyebrow">COMMUNITY POST</p>
+        <h1>새로운 이야기를 들려주세요</h1>
+        <p>질문, 학습 기록, 동료에게 전하고 싶은 경험을 자유롭게 나눠보세요.</p>
+    </header>
+
+    <form class="editorCard" id="postForm" novalidate>
+        <div class="inputBox editorField">
+            <div class="fieldHeader">
+                <label class="fieldLabel" for="title">
+                    제목 <span class="requiredMark" aria-hidden="true">*</span>
+                </label>
+                <span class="characterCount"><strong id="titleCount">0</strong>/26</span>
+            </div>
+            <input
+                class="textInput"
                 type="text"
                 id="title"
-                placeholder="제목을 입력해 주세요. (최대 26자)"
-        />
-    </div>
-    <div class="inputBox">
-        <label>내용*</label>
-        <textarea
+                maxlength="26"
+                autocomplete="off"
+                placeholder="어떤 이야기인지 한 줄로 알려주세요"
+                aria-describedby="editorHelper"
+                required
+            />
+        </div>
+
+        <div class="inputBox editorField">
+            <div class="fieldHeader">
+                <label class="fieldLabel" for="content">
+                    내용 <span class="requiredMark" aria-hidden="true">*</span>
+                </label>
+                <span class="characterCount"><strong id="contentCount">0</strong>/1500</span>
+            </div>
+            <textarea
+                class="textArea editorTextarea"
                 id="content"
-                placeholder="내용을 입력해 주세요."
-        ></textarea>
-        <p class="helperText" name="content"></p>
-    </div>
-    <div class="inputBox">
-        <label class="non-border">이미지</label>
-        <input
-                class="non-border"
-                type="file"
-                id="image"
-                placeholder="파일을 선택해주세요."
-                accept="image/*"
-        />
-    </div>
-    <button id="submit">완료</button>
-</div>
-<div class="background"></div>
+                maxlength="1500"
+                placeholder="배운 내용이나 궁금한 점을 구체적으로 적어보세요."
+                aria-describedby="editorHelper"
+                required
+            ></textarea>
+            <p class="helperText" id="editorHelper" name="content" aria-live="polite"></p>
+        </div>
+
+        <div class="inputBox editorField imageField">
+            <span class="fieldLabel">이미지</span>
+            <label class="uploadZone" for="image">
+                <span class="uploadSymbol" aria-hidden="true">+</span>
+                <strong>이미지 첨부하기</strong>
+                <span>클릭해서 한 장의 이미지를 선택하세요.</span>
+            </label>
+            <input class="fileInput" type="file" id="image" accept="image/*" />
+            <div id="imagePreviewText" class="imagePreviewText" hidden></div>
+        </div>
+
+        <div class="editorActions">
+            <a class="secondaryButton" href="/html/index.html">취소</a>
+            <button class="primaryButton" id="submit" type="submit" disabled>게시하기</button>
+        </div>
+    </form>
+</main>
+
+<div class="background" aria-hidden="true"></div>
+<script src="/js/board-write.js" type="module"></script>
 </body>
-<script src="../js/board-write.js" type="module"></script>
 </html>

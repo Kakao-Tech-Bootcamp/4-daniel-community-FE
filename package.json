@@ -1,13 +1,15 @@
 {
-  "name": "your-project-name",
+  "name": "ktb-hub-frontend",
   "version": "1.0.0",
+  "description": "KTB HUB bootcamp community frontend",
   "type": "module",
   "main": "app.js",
   "license": "Proprietary",
   "private": true,
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "test": "node --test"
   },
   "dependencies": {
     "cookie-parser": "^1.4.6",

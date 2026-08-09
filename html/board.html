@@ -1,63 +1,126 @@
 <!doctype html>
-<html lang="kr">
+<html lang="ko">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+        name="description"
+        content="KTB HUB 커뮤니티 게시글과 댓글을 확인합니다."
+    />
     <script src="/config.js"></script>
     <link
-            rel="stylesheet"
-            href="../css/board.css"
-            crossorigin="anonymous"
+        rel="stylesheet"
+        href="../css/board.css"
+        crossorigin="anonymous"
     />
-    <title>게시판 상세</title>
+    <title>게시글 | KTB HUB</title>
 </head>
 <body>
-<section class="wrap">
-    <section class="head">
-        <h1 class="title"></h1>
-        <div class="writerWrap">
-            <picture class="profileImg">
-                <img class="img" src="/public/profile_default.svg" />
-            </picture>
-            <h2 class="nickname"></h2>
-            <h3 class="createdAt"></h3>
-            <div class="mod hidden">
-                <button id="modifyBtn">수정</button>
-                <button id="deleteBtn">삭제</button>
+<a class="skipLink" href="#mainContent">본문으로 바로가기</a>
+<main class="wrap boardPage" id="mainContent">
+    <article class="postCard" aria-labelledby="postTitle">
+        <header class="head">
+            <h1 class="title" id="postTitle"></h1>
+
+            <div class="writerWrap">
+                <picture class="profileImg">
+                    <img
+                        class="img"
+                        src="/public/profile_default.svg"
+                        alt="게시글 작성자 프로필 이미지"
+                    />
+                </picture>
+
+                <div class="writerMeta">
+                    <span class="nickname"></span>
+                    <time class="createdAt"></time>
+                </div>
+
+                <div class="mod hidden" aria-label="게시글 관리">
+                    <button id="modifyBtn" type="button">수정</button>
+                    <button id="deleteBtn" type="button">삭제</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="body">
+            <figure class="contentImg hidden"></figure>
+            <div class="content"></div>
+
+            <div class="bodyWrap">
+                <div class="commentWrap" aria-label="게시글 반응 정보">
+                    <button
+                        class="countItem likeButton"
+                        type="button"
+                        aria-pressed="false"
+                        aria-label="좋아요 0개, 좋아요 누르기"
+                    >
+                        <span
+                            class="countIcon likeIcon"
+                            aria-hidden="true"
+                        ></span>
+                        <span class="countValue">0</span>
+                        <span class="countLabel">좋아요</span>
+                    </button>
+
+                    <div class="countItem viewCount" aria-label="조회수 0회">
+                        <span
+                            class="countIcon viewIcon"
+                            aria-hidden="true"
+                        ></span>
+                        <span class="countValue">0</span>
+                        <span class="countLabel">조회</span>
+                    </div>
+
+                    <div class="countItem commentCount" aria-label="댓글 0개">
+                        <span
+                            class="countIcon commentIcon"
+                            aria-hidden="true"
+                        ></span>
+                        <span class="countValue">0</span>
+                        <span class="countLabel">댓글</span>
+                    </div>
+                </div>
             </div>
         </div>
-    </section>
-    <section class="body">
-        <div class="contentImg"></div>
-        <article class="content"></article>
-        <article class="bodyWrap">
-            <div class="commentWrap">
-                <button class="countItem likeButton" type="button" aria-pressed="false">
-                    <h3></h3>
-                    <p>좋아요수</p>
-                </button>
-                <div class="countItem viewCount">
-                    <h3></h3>
-                    <p>조회수</p>
-                </div>
-                <div class="countItem commentCount">
-                    <h3></h3>
-                    <p>댓글</p>
-                </div>
-            </div>
-        </article>
-    </section>
-    <section class="comment">
-        <div class="commentInputWrap">
-            <textarea placeholder="댓글을 남겨주세요!"></textarea>
+    </article>
+
+    <section class="comment" aria-labelledby="commentsTitle">
+        <div class="commentHeading">
             <div>
-                <button class="commentInputBtn">댓글 등록</button>
+                <p class="commentEyebrow">COMMUNITY</p>
+                <h2 id="commentsTitle">댓글</h2>
             </div>
+            <p class="commentGuide">서로를 존중하는 대화를 나눠주세요.</p>
         </div>
-        <div class="commentList"></div>
+
+        <form class="commentForm" novalidate>
+            <label class="srOnly" for="commentInput">댓글 내용</label>
+            <div class="commentInputWrap">
+                <textarea
+                    id="commentInput"
+                    name="comment"
+                    maxlength="1000"
+                    placeholder="댓글을 남겨주세요."
+                    aria-describedby="commentLength"
+                ></textarea>
+                <div class="commentInputActions">
+                    <span id="commentLength" class="commentLength">0 / 1000</span>
+                    <button class="commentInputBtn" type="submit" disabled>
+                        댓글 등록
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <p class="commentListStatus" role="status">
+            댓글을 불러오는 중입니다.
+        </p>
+        <div class="commentList" aria-label="댓글 목록"></div>
     </section>
-</section>
-<div class="background"></div>
-</body>
+</main>
+
+<div class="background" aria-hidden="true"></div>
 <script src="../js/board.js" type="module"></script>
+</body>
 </html>

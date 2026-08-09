@@ -16,7 +16,7 @@ import {
     unlikePost,
 } from '../api/boardRequest.js';
 
-const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
+const DEFAULT_PROFILE_IMAGE = '/public/profile_default.svg';
 const MAX_COMMENT_LENGTH = 1000;
 const HTTP_NOT_AUTHORIZED = 401;
 const HTTP_OK = 200;
@@ -63,9 +63,13 @@ const formatCount = value => {
     return count.toLocaleString();
 };
 
-const setLikeButtonState = (button, isLiked) => {
+const setLikeButtonState = (button, isLiked, count) => {
     button.classList.toggle('is-active', isLiked);
     button.setAttribute('aria-pressed', isLiked ? 'true' : 'false');
+    button.setAttribute(
+        'aria-label',
+        `좋아요 ${Number(count).toLocaleString()}개, ${isLiked ? '좋아요 취소하기' : '좋아요 누르기'}`,
+    );
 };
 
 const getQueryString = name => {
@@ -84,21 +88,34 @@ const getBoardDetail = async postId => {
 const setBoardDetail = data => {
     const titleElement = document.querySelector('.title');
     const createdAtElement = document.querySelector('.createdAt');
-    const imgElement = document.querySelector('.img');
+    const imgElement = document.querySelector('.profileImg .img');
     const nicknameElement = document.querySelector('.nickname');
 
     titleElement.textContent = data.title;
+    document.title = `${data.title || '게시글'} | KTB HUB`;
 
     const date = new Date(data.createdAt);
-    const formattedDate = `${date.getFullYear()}-${padTo2Digits(date.getMonth() + 1)}-${padTo2Digits(date.getDate())} ${padTo2Digits(date.getHours())}:${padTo2Digits(date.getMinutes())}:${padTo2Digits(date.getSeconds())}`;
-    createdAtElement.textContent = formattedDate;
+    if (!Number.isNaN(date.getTime())) {
+        const formattedDate = `${date.getFullYear()}-${padTo2Digits(date.getMonth() + 1)}-${padTo2Digits(date.getDate())} ${padTo2Digits(date.getHours())}:${padTo2Digits(date.getMinutes())}:${padTo2Digits(date.getSeconds())}`;
+        createdAtElement.dateTime = date.toISOString();
+        createdAtElement.textContent = formattedDate;
+    }
 
     imgElement.src = resolveImageUrl(
         data.profileImage,
         DEFAULT_PROFILE_IMAGE,
     );
+    imgElement.addEventListener(
+        'error',
+        () => {
+            imgElement.src = DEFAULT_PROFILE_IMAGE;
+        },
+        { once: true },
+    );
 
-    nicknameElement.textContent = data.nickname;
+    const authorName = data.nickname || '알 수 없는 사용자';
+    nicknameElement.textContent = authorName;
+    imgElement.alt = `${authorName}님의 프로필 이미지`;
 
     const contentImgElement = document.querySelector('.contentImg');
     contentImgElement.innerHTML = '';
@@ -107,24 +124,31 @@ const setBoardDetail = data => {
     if (fileUrl) {
         const img = document.createElement('img');
         img.src = fileUrl;
+        img.alt = `${data.title} 게시글에 첨부된 이미지`;
+        img.loading = 'lazy';
         contentImgElement.appendChild(img);
+        contentImgElement.classList.remove('hidden');
+    } else {
+        contentImgElement.classList.add('hidden');
     }
 
     const contentElement = document.querySelector('.content');
     contentElement.textContent = data.content;
 
     const likeButtonElement = document.querySelector('.likeButton');
-    const likeCountElement = likeButtonElement.querySelector('h3');
+    const likeCountElement = likeButtonElement.querySelector('.countValue');
     let isLiked = Boolean(data.isLiked);
     let likeCount = Number(data.likeCount) || 0;
     let isLikeLoading = false;
 
     likeCountElement.textContent = formatCount(likeCount);
-    setLikeButtonState(likeButtonElement, isLiked);
+    setLikeButtonState(likeButtonElement, isLiked, likeCount);
 
     likeButtonElement.addEventListener('click', async () => {
         if (isLikeLoading) return;
         isLikeLoading = true;
+        likeButtonElement.disabled = true;
+        likeButtonElement.setAttribute('aria-busy', 'true');
 
         try {
             if (!isLiked) {
@@ -135,7 +159,11 @@ const setBoardDetail = data => {
                     likeCount = likeData && likeData.like_count !== undefined
                         ? Number(likeData.like_count)
                         : likeCount + 1;
-                    setLikeButtonState(likeButtonElement, isLiked);
+                    setLikeButtonState(
+                        likeButtonElement,
+                        isLiked,
+                        likeCount,
+                    );
                     likeCountElement.textContent = formatCount(likeCount);
                 } else if (status === HTTP_NOT_AUTHORIZED) {
                     window.location.href = '/html/login.html';
@@ -150,7 +178,11 @@ const setBoardDetail = data => {
                     likeCount = likeData && likeData.like_count !== undefined
                         ? Number(likeData.like_count)
                         : Math.max(0, likeCount - 1);
-                    setLikeButtonState(likeButtonElement, isLiked);
+                    setLikeButtonState(
+                        likeButtonElement,
+                        isLiked,
+                        likeCount,
+                    );
                     likeCountElement.textContent = formatCount(likeCount);
                 } else if (status === HTTP_NOT_AUTHORIZED) {
                     window.location.href = '/html/login.html';
@@ -160,14 +192,26 @@ const setBoardDetail = data => {
             }
         } finally {
             isLikeLoading = false;
+            likeButtonElement.disabled = false;
+            likeButtonElement.removeAttribute('aria-busy');
         }
     });
 
-    const viewCountElement = document.querySelector('.viewCount h3');
+    const viewCountElement = document.querySelector('.viewCount .countValue');
     viewCountElement.textContent = formatCount(data.viewCount);
+    viewCountElement.parentElement.setAttribute(
+        'aria-label',
+        `조회수 ${Number(data.viewCount).toLocaleString()}회`,
+    );
 
-    const commentCountElement = document.querySelector('.commentCount h3');
+    const commentCountElement = document.querySelector(
+        '.commentCount .countValue',
+    );
     commentCountElement.textContent = Number(data.commentCount).toLocaleString();
+    commentCountElement.parentElement.setAttribute(
+        'aria-label',
+        `댓글 ${Number(data.commentCount).toLocaleString()}개`,
+    );
 };
 
 const setBoardModify = async (data, myInfo) => {
@@ -176,7 +220,7 @@ const setBoardModify = async (data, myInfo) => {
         myInfo.userId &&
         Number(myInfo.userId) === Number(data.writerId)
     ) {
-        const modifyElement = document.querySelector('.hidden');
+        const modifyElement = document.querySelector('.mod');
         modifyElement.classList.remove('hidden');
 
         const deleteBtnElement = document.querySelector('#deleteBtn');
@@ -189,7 +233,7 @@ const setBoardModify = async (data, myInfo) => {
                 async () => {
                     const { ok } = await deletePost(postId);
                     if (ok) {
-                        window.location.href = '/';
+                        window.location.href = '/html/index.html';
                     } else {
                         Dialog('삭제 실패', '게시글 삭제에 실패하였습니다.');
                     }
@@ -213,41 +257,65 @@ const getBoardComment = async id => {
 
 const setBoardComment = (data, myInfo) => {
     const commentListElement = document.querySelector('.commentList');
+    const commentStatusElement = document.querySelector('.commentListStatus');
 
-    if (commentListElement) {
-        data.forEach(event => {
-            const commentId = event.id || event.comment_id;
-            const postId = event.postId || event.post_id || getQueryString('id');
+    if (!commentListElement || !commentStatusElement) return;
 
-            const item = CommentItem(
-                event,
-                myInfo.userId,
-                postId,
-                commentId,
-            );
-            commentListElement.appendChild(item);
-        });
+    commentListElement.replaceChildren();
+
+    if (!Array.isArray(data) || data.length === 0) {
+        commentStatusElement.hidden = false;
+        commentStatusElement.textContent =
+            '아직 댓글이 없습니다. 첫 댓글을 남겨보세요.';
+        return;
     }
+
+    commentStatusElement.hidden = true;
+    const fragment = document.createDocumentFragment();
+
+    data.forEach(event => {
+        const commentId = event.id || event.comment_id;
+        const postId = event.postId || event.post_id || getQueryString('id');
+
+        const item = CommentItem(
+            event,
+            myInfo.userId,
+            postId,
+            commentId,
+        );
+        fragment.appendChild(item);
+    });
+
+    commentListElement.appendChild(fragment);
 };
 
 const addComment = async () => {
-    const comment = document.querySelector('textarea').value;
+    const textareaElement = document.querySelector(
+        '.commentInputWrap textarea',
+    );
+    const commentButtonElement = document.querySelector('.commentInputBtn');
+    const comment = textareaElement.value;
     const pageId = getQueryString('id');
 
+    commentButtonElement.disabled = true;
+    commentButtonElement.setAttribute('aria-busy', 'true');
     const { ok } = await writeComment(pageId, comment);
 
     if (ok) {
         window.location.reload();
     } else {
+        commentButtonElement.removeAttribute('aria-busy');
+        inputComment();
         Dialog('댓글 등록 실패', '댓글 등록에 실패하였습니다.');
     }
 };
 
-const inputComment = async () => {
+const inputComment = () => {
     const textareaElement = document.querySelector(
         '.commentInputWrap textarea',
     );
     const commentBtnElement = document.querySelector('.commentInputBtn');
+    const commentLengthElement = document.querySelector('.commentLength');
 
     if (textareaElement.value.length > MAX_COMMENT_LENGTH) {
         textareaElement.value = textareaElement.value.substring(
@@ -256,18 +324,14 @@ const inputComment = async () => {
         );
     }
 
-    if (textareaElement.value === '') {
-        commentBtnElement.disabled = true;
-        commentBtnElement.style.backgroundColor = '#ACA0EB';
-    } else {
-        commentBtnElement.disabled = false;
-        commentBtnElement.style.backgroundColor = '#7F6AEE';
-    }
+    commentLengthElement.textContent = `${textareaElement.value.length} / ${MAX_COMMENT_LENGTH}`;
+    commentBtnElement.disabled = textareaElement.value.length === 0;
 };
 
 const init = async () => {
     try {
         const response = await authCheck();
+        if (!response) return;
         const myInfoResult = await response.json();
 
         if (response.status !== HTTP_OK) {
@@ -284,10 +348,14 @@ const init = async () => {
         const textareaElement = document.querySelector(
             '.commentInputWrap textarea',
         );
+        const commentFormElement = document.querySelector('.commentForm');
 
         textareaElement.addEventListener('input', inputComment);
-        commentBtnElement.addEventListener('click', addComment);
-        commentBtnElement.disabled = true;
+        commentFormElement.addEventListener('submit', event => {
+            event.preventDefault();
+            if (!commentBtnElement.disabled) addComment();
+        });
+        inputComment();
 
         const profileImage = resolveImageUrl(
             myInfo.profileImageUrl,

@@ -1,48 +1,113 @@
 <!doctype html>
-<html lang="kr">
+<html lang="ko">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="/config.js"></script>
-    <link
-            rel="stylesheet"
-            href="../css/login.css"
-            crossorigin="anonymous"
+    <meta
+        name="description"
+        content="카카오테크 부트캠프의 소식과 이야기가 모이는 KTB HUB에 로그인하세요."
     />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.7.6/lottie.min.js"></script>
-    <title>로그인</title>
+    <script src="/config.js"></script>
+    <link rel="stylesheet" href="../css/login.css" crossorigin="anonymous" />
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.7.6/lottie.min.js"
+        integrity="sha384-1Lf7AdVzFq7w6uJBYBycgKffJYJ67nMyZxGtn6FPZhWDdvyOMaR1QrLxEg8lkcpt"
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"
+    ></script>
+    <title>로그인 | KTB HUB</title>
 </head>
-<body>
-<section class="wrap">
-    <h1 class="title">로그인</h1>
-    <article>
-        <div class="inputBox">
-            <label for="id">이메일</label>
-            <input
-                    type="text"
-                    name="id"
-                    id="id"
-                    placeholder="이메일을 입력하세요"
-            />
-            <div id="lottie-animation" class="lottie"></div>
-        </div>
-        <div class="inputBox">
-            <label for="pw">비밀번호</label>
-            <input
-                    type="password"
-                    name="pw"
-                    id="pw"
-                    placeholder="비밀번호를 입력하세요"
-            />
-            <p class="helperText"></p>
-        </div>
-        <div class="buttons">
-            <button id="login">로그인</button>
-            <a href="signup.html">회원가입</a>
-        </div>
-    </article>
-</section>
-<div class="background"></div>
-</body>
+<body class="authPage authPage--login">
+<a class="skipLink" href="#mainContent">본문으로 바로가기</a>
+<main class="wrap" id="mainContent">
+    <div class="authShell">
+        <aside class="brandPanel" aria-label="KTB HUB 소개">
+            <a class="brandLockup" href="/" aria-label="KTB HUB 랜딩 페이지로 이동">
+                <span class="brandName">KTB HUB</span>
+            </a>
+
+            <div class="brandMessage">
+                <p class="eyebrow">KAKAO TECH BOOTCAMP</p>
+                <h2 class="twoLineMessage">
+                    <span>부트캠프의 소식과</span>
+                    <span>동료의 이야기를 한곳에서</span>
+                </h2>
+                <p>
+                    중요한 안내를 확인하고 학습 과정에서 얻은 <br> 경험과
+                    고민을 자유롭게 나눠보세요.
+                </p>
+            </div>
+
+            <ul class="brandBenefits" aria-label="KTB HUB 주요 기능">
+                <li>부트캠프 소식 확인</li>
+                <li>질문과 학습 경험 공유</li>
+                <li>댓글과 좋아요로 소통</li>
+            </ul>
+        </aside>
+
+        <section class="authPanel" aria-labelledby="loginTitle">
+            <article class="authCard">
+                <div class="authHeading">
+                    <p class="sectionLabel">WELCOME BACK</p>
+                    <h1 class="title" id="loginTitle">다시 만나서 반가워요</h1>
+                    <p>계정에 로그인하고 KTB HUB의 새로운 소식을 확인하세요.</p>
+                </div>
+
+                <form class="authForm" aria-labelledby="loginTitle" novalidate>
+                    <div class="inputBox">
+                        <label for="id">이메일</label>
+                        <div class="inputControl">
+                            <input
+                                type="email"
+                                name="id"
+                                id="id"
+                                placeholder="example@ktb.com"
+                                autocomplete="email"
+                                aria-describedby="loginHelper"
+                                required
+                            />
+                            <div
+                                id="lottie-animation"
+                                class="lottie"
+                                aria-hidden="true"
+                            ></div>
+                        </div>
+                    </div>
+
+                    <div class="inputBox">
+                        <label for="pw">비밀번호</label>
+                        <div class="inputControl">
+                            <input
+                                type="password"
+                                name="pw"
+                                id="pw"
+                                placeholder="비밀번호를 입력하세요"
+                                autocomplete="current-password"
+                                aria-describedby="loginHelper"
+                                required
+                            />
+                        </div>
+                        <p
+                            class="helperText"
+                            id="loginHelper"
+                            role="status"
+                            aria-live="polite"
+                        ></p>
+                    </div>
+
+                    <div class="buttons">
+                        <button id="login" type="submit" disabled>로그인</button>
+                        <p class="switchPageText">
+                            아직 계정이 없나요?
+                            <a href="/html/signup.html">회원가입</a>
+                        </p>
+                    </div>
+                </form>
+            </article>
+        </section>
+    </div>
+</main>
+<div class="background" aria-hidden="true"></div>
 <script src="../js/login.js" type="module"></script>
+</body>
 </html>

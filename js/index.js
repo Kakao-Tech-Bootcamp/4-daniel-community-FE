@@ -4,190 +4,372 @@ import Header from '../component/header/header.js';
 import { authCheck, prependChild, resolveImageUrl } from '../utils/function.js';
 import { getPosts, searchPosts } from '../api/indexRequest.js';
 
-const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
+const DEFAULT_PROFILE_IMAGE = '/public/profile_default.svg';
 const HTTP_NOT_AUTHORIZED = 401;
 const SCROLL_THRESHOLD = 0.9;
-const DEFAULT_SORT = 'recent';
 
 let currentKeyword = '';
-let currentSort = DEFAULT_SORT;
 let currentCursor = null;
 let isEnd = false;
 let isProcessing = false;
+let isScrollScheduled = false;
 
-const normalizePost = data => ({
-    id: data.id || data.post_id,
-    createdAt: data.createdAt || data.created_at,
-    title: data.title,
-    viewCount: data.viewCount ?? data.views,
-    profileImageUrl:
-        data.author &&
-        (data.author.profileImageUrl || data.author.profile_image),
-    nickname: data.author ? data.author.nickname : null,
-    commentCount: data.commentCount ?? data.comments_count,
-    likeCount: data.likeCount ?? data.likes,
-});
+const normalizePost = data => {
+    const post = data || {};
+    const author = post.author || {};
 
-const updateSortVisibility = () => {
-    const sortRow = document.querySelector('#searchSortRow');
-    if (!sortRow) return;
-    const isSearching = currentKeyword.trim().length > 0;
-    sortRow.classList.toggle('isHidden', !isSearching);
-    sortRow.setAttribute('aria-hidden', String(!isSearching));
+    return {
+        id: post.id || post.post_id,
+        createdAt: post.createdAt || post.created_at,
+        title: post.title,
+        viewCount: post.viewCount ?? post.views,
+        profileImageUrl:
+            author.profileImageUrl || author.profile_image || null,
+        nickname: author.nickname || post.nickname || null,
+        commentCount: post.commentCount ?? post.comments_count,
+        likeCount: post.likeCount ?? post.likes,
+    };
 };
 
-const getBoardItem = async () => {
-    const result =
-        currentKeyword.trim() === ''
-            ? await getPosts(currentCursor)
-            : await searchPosts(currentKeyword, currentCursor, currentSort);
+const getBoardList = () => document.querySelector('.boardList');
+const getFeedState = () => document.querySelector('#feedState');
 
-    if (!result.ok) {
-        throw new Error('Failed to load post list.');
+const setBusy = busy => {
+    const boardList = getBoardList();
+    const clearButton = document.querySelector('#searchClearButton');
+
+    if (boardList) boardList.setAttribute('aria-busy', String(busy));
+    if (clearButton) clearButton.disabled = busy;
+};
+
+const replaceFeedState = (...children) => {
+    const feedState = getFeedState();
+    if (feedState) feedState.replaceChildren(...children);
+};
+
+const createStatePanel = (mark, title, description) => {
+    const panel = document.createElement('div');
+    panel.className = 'statePanel';
+
+    const markElement = document.createElement('span');
+    markElement.className = 'stateMark';
+    markElement.textContent = mark;
+    markElement.setAttribute('aria-hidden', 'true');
+
+    const titleElement = document.createElement('h3');
+    titleElement.textContent = title;
+
+    const descriptionElement = document.createElement('p');
+    descriptionElement.textContent = description;
+
+    panel.append(markElement, titleElement, descriptionElement);
+    return panel;
+};
+
+const showLoadingState = () => {
+    const panel = document.createElement('div');
+    panel.className = 'statePanel loadingState';
+
+    const spinner = document.createElement('span');
+    spinner.className = 'stateSpinner';
+    spinner.setAttribute('aria-hidden', 'true');
+
+    const message = document.createElement('p');
+    message.textContent = currentCursor
+        ? '다음 이야기를 불러오고 있습니다.'
+        : '게시글을 불러오고 있습니다.';
+
+    panel.append(spinner, message);
+    replaceFeedState(panel);
+};
+
+const setSearchSummary = () => {
+    const summary = document.querySelector('#searchSummary');
+    if (!summary) return;
+
+    summary.hidden = currentKeyword.length === 0;
+    summary.textContent = currentKeyword
+        ? `“${currentKeyword}” 검색 결과`
+        : '';
+};
+
+const updateClearButton = () => {
+    const input = document.querySelector('#searchInput');
+    const clearButton = document.querySelector('#searchClearButton');
+    if (!input || !clearButton) return;
+
+    clearButton.hidden = input.value.length === 0;
+};
+
+const showEmptyState = () => {
+    const isSearching = currentKeyword.length > 0;
+    const panel = createStatePanel(
+        isSearching ? '?' : '+',
+        isSearching ? '검색 결과가 없습니다.' : '아직 작성된 글이 없습니다.',
+        isSearching
+            ? '검색어를 바꾸거나 전체 게시글을 다시 확인해 보세요.'
+            : '첫 번째 이야기를 작성해 동료들과 경험을 나눠보세요.',
+    );
+
+    if (isSearching) {
+        const resetButton = document.createElement('button');
+        resetButton.type = 'button';
+        resetButton.className = 'stateAction';
+        resetButton.textContent = '전체 글 보기';
+        resetButton.addEventListener('click', () => {
+            const input = document.querySelector('#searchInput');
+            if (input) input.value = '';
+            currentKeyword = '';
+            updateClearButton();
+            setSearchSummary();
+            loadBoardItems({ reset: true });
+        });
+        panel.appendChild(resetButton);
+    } else {
+        const writeLink = document.createElement('a');
+        writeLink.className = 'stateAction';
+        writeLink.href = '/html/board-write.html';
+        writeLink.textContent = '첫 글 작성하기';
+        panel.appendChild(writeLink);
     }
 
-    return result.data;
+    replaceFeedState(panel);
+};
+
+const showErrorState = () => {
+    const boardList = getBoardList();
+    const hasLoadedItems = Boolean(boardList && boardList.childElementCount > 0);
+    const panel = createStatePanel(
+        '!',
+        '게시글을 불러오지 못했습니다.',
+        '네트워크 상태를 확인한 뒤 다시 시도해 주세요.',
+    );
+
+    const retryButton = document.createElement('button');
+    retryButton.type = 'button';
+    retryButton.className = 'stateAction';
+    retryButton.textContent = '다시 시도';
+    retryButton.addEventListener('click', () => {
+        isEnd = false;
+        loadBoardItems({ reset: !hasLoadedItems });
+    });
+
+    panel.appendChild(retryButton);
+    replaceFeedState(panel);
+};
+
+const showEndState = () => {
+    const panel = document.createElement('div');
+    panel.className = 'statePanel endState';
+
+    const message = document.createElement('p');
+    message.textContent = currentKeyword
+        ? '검색된 게시글을 모두 확인했습니다.'
+        : '모든 게시글을 확인했습니다.';
+
+    panel.appendChild(message);
+    replaceFeedState(panel);
 };
 
 const setBoardItem = boardData => {
-    const boardList = document.querySelector('.boardList');
-    if (boardList && boardData) {
-        const itemsHtml = boardData
-            .map(data => {
-                const post = normalizePost(data);
+    const boardList = getBoardList();
+    if (!boardList || !Array.isArray(boardData)) return 0;
 
-                return BoardItem(
-                    post.id,
-                    post.createdAt,
-                    post.title,
-                    post.viewCount,
-                    post.profileImageUrl,
-                    post.nickname,
-                    post.commentCount,
-                    post.likeCount,
-                );
-            })
-            .join('');
+    const fragment = document.createDocumentFragment();
+    let appendedCount = 0;
 
-        boardList.innerHTML += ` ${itemsHtml}`;
-    }
+    boardData.forEach(data => {
+        const post = normalizePost(data);
+        const item = BoardItem(
+            post.id,
+            post.createdAt,
+            post.title,
+            post.viewCount,
+            post.profileImageUrl,
+            post.nickname,
+            post.commentCount,
+            post.likeCount,
+        );
+
+        if (item) {
+            fragment.appendChild(item);
+            appendedCount += 1;
+        }
+    });
+
+    boardList.appendChild(fragment);
+    return appendedCount;
 };
 
 const resetBoardList = () => {
-    const boardList = document.querySelector('.boardList');
-    if (boardList) {
-        boardList.innerHTML = '';
+    const boardList = getBoardList();
+    if (boardList) boardList.replaceChildren();
+};
+
+const getBoardData = async () => {
+    const result = currentKeyword
+        ? await searchPosts(currentKeyword, currentCursor)
+        : await getPosts(currentCursor);
+
+    if (!result.ok) {
+        throw new Error(result.message || 'Failed to load post list.');
     }
+
+    return result.data || {};
 };
 
 const loadBoardItems = async ({ reset = false } = {}) => {
     if (isProcessing || (!reset && isEnd)) return;
+
+    if (reset) {
+        currentCursor = null;
+        isEnd = false;
+        resetBoardList();
+    }
+
     isProcessing = true;
+    setBusy(true);
+    showLoadingState();
 
     try {
-        if (reset) {
-            currentCursor = null;
-            isEnd = false;
-            resetBoardList();
-        }
-
-        const result = await getBoardItem();
-        const posts = result && result.posts ? result.posts : [];
-
-        if (posts.length === 0) {
-            isEnd = true;
-            return;
-        }
-
+        const result = await getBoardData();
+        const posts = Array.isArray(result.posts) ? result.posts : [];
         setBoardItem(posts);
-        currentCursor = result.next_cursor;
-        isEnd = !result.has_more;
+
+        currentCursor = result.next_cursor ?? result.nextCursor ?? null;
+        const hasMore = result.has_more ?? result.hasMore ?? false;
+        isEnd = !Boolean(hasMore);
+
+        const boardList = getBoardList();
+        const hasItems = Boolean(boardList && boardList.childElementCount > 0);
+
+        if (!hasItems) {
+            isEnd = true;
+            showEmptyState();
+        } else if (isEnd) {
+            showEndState();
+        } else {
+            replaceFeedState();
+        }
     } catch (error) {
         console.error('Error fetching items:', error);
         isEnd = true;
+        showErrorState();
     } finally {
         isProcessing = false;
+        setBusy(false);
+        updateClearButton();
     }
 };
 
-const addSearchEvent = () => {
+const runSearch = async () => {
+    if (isProcessing) return;
+
     const searchInput = document.querySelector('#searchInput');
-    const searchButton = document.querySelector('.searchButton');
-    if (!searchInput || !searchButton) return;
+    if (!searchInput) return;
 
-    const runSearch = async () => {
-        const trimmedKeyword = searchInput.value.trim();
-        if (trimmedKeyword.length > 0 && trimmedKeyword.length < 2) {
-            Dialog('검색 실패', '검색어는 2글자 이상 입력해주세요.');
-            return;
-        }
-        currentKeyword = trimmedKeyword;
-        updateSortVisibility();
-        await loadBoardItems({ reset: true });
-    };
+    const trimmedKeyword = searchInput.value.trim();
 
-    searchButton.addEventListener('click', runSearch);
-    searchInput.addEventListener('keydown', event => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            runSearch();
-        }
-    });
+    if (trimmedKeyword.length > 0 && trimmedKeyword.length < 2) {
+        Dialog('검색 실패', '검색어는 2글자 이상 입력해주세요.');
+        return;
+    }
+
+    searchInput.value = trimmedKeyword;
+    currentKeyword = trimmedKeyword;
+    updateClearButton();
+    setSearchSummary();
+    await loadBoardItems({ reset: true });
 };
 
-const addSortEvent = () => {
-    const sortSelect = document.querySelector('#searchSortSelect');
-    if (!sortSelect) return;
-    sortSelect.value = currentSort;
+const addSearchEvent = () => {
+    const searchForm = document.querySelector('.searchRow');
+    const searchInput = document.querySelector('#searchInput');
+    const clearButton = document.querySelector('#searchClearButton');
+    if (!searchForm || !searchInput || !clearButton) return;
 
-    sortSelect.addEventListener('change', async () => {
-        currentSort = sortSelect.value || DEFAULT_SORT;
-        if (currentKeyword.trim().length === 0) return;
-        await loadBoardItems({ reset: true });
+    searchForm.addEventListener('submit', event => {
+        event.preventDefault();
+        runSearch();
+    });
+
+    searchInput.addEventListener('input', updateClearButton);
+    clearButton.addEventListener('click', () => {
+        searchInput.value = '';
+        updateClearButton();
+
+        if (currentKeyword) {
+            runSearch();
+        } else {
+            searchInput.focus();
+        }
     });
 };
 
 const addInfinityScrollEvent = () => {
-    isEnd = false;
-    isProcessing = false;
+    window.addEventListener(
+        'scroll',
+        () => {
+            if (isScrollScheduled) return;
+            isScrollScheduled = true;
 
-    window.addEventListener('scroll', async () => {
-        const hasScrolledToThreshold =
-            window.scrollY + window.innerHeight >=
-            document.documentElement.scrollHeight * SCROLL_THRESHOLD;
-        if (hasScrolledToThreshold) {
-            loadBoardItems();
-        }
-    });
+            window.requestAnimationFrame(() => {
+                const hasScrolledToThreshold =
+                    window.scrollY + window.innerHeight >=
+                    document.documentElement.scrollHeight * SCROLL_THRESHOLD;
+
+                if (hasScrolledToThreshold) loadBoardItems();
+                isScrollScheduled = false;
+            });
+        },
+        { passive: true },
+    );
+};
+
+const setWelcomeMessage = userData => {
+    const welcome = document.querySelector('#welcomeName');
+    const nickname = String(userData.nickname || '').trim();
+
+    if (welcome && nickname) {
+        welcome.textContent = `${nickname}님, 오늘의 이야기를 만나보세요.`;
+    }
+};
+
+const insertHeader = profileImageUrl => {
+    prependChild(document.body, Header('커뮤니티', 0, profileImageUrl));
+
+    const skipLink = document.querySelector('.skipLink');
+    if (skipLink) prependChild(document.body, skipLink);
 };
 
 const init = async () => {
     try {
         const response = await authCheck();
-        const data = await response.json();
+        if (!response) return;
+
         if (response.status === HTTP_NOT_AUTHORIZED) {
             window.location.href = '/html/login.html';
             return;
         }
 
+        const payload = await response.json();
+        const userData = payload && payload.data ? payload.data : {};
         const profileImageUrl = resolveImageUrl(
-            data.data.profileImageUrl || data.data.profile_image,
+            userData.profileImageUrl || userData.profile_image,
             DEFAULT_PROFILE_IMAGE,
         );
 
-        prependChild(
-            document.body,
-            Header('게시판', 0, profileImageUrl),
-        );
-
-        updateSortVisibility();
-        await loadBoardItems({ reset: true });
-
+        insertHeader(profileImageUrl);
+        setWelcomeMessage(userData);
+        setSearchSummary();
+        updateClearButton();
         addSearchEvent();
-        addSortEvent();
         addInfinityScrollEvent();
+
+        await loadBoardItems({ reset: true });
     } catch (error) {
         console.error('Initialization failed:', error);
+        showErrorState();
     }
 };
 

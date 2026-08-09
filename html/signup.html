@@ -1,77 +1,175 @@
 <!doctype html>
-<html lang="kr">
+<html lang="ko">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="/config.js"></script>
-    <link
-            rel="stylesheet"
-            href="../css/login.css"
-            crossorigin="anonymous"
+    <meta
+        name="description"
+        content="KTB HUB에 가입하고 카카오테크 부트캠프 동료들과 소식과 경험을 나눠보세요."
     />
-    <title>회원가입</title>
+    <script src="/config.js"></script>
+    <link rel="stylesheet" href="../css/login.css" crossorigin="anonymous" />
+    <title>회원가입 | KTB HUB</title>
 </head>
-<body>
-<section class="wrap">
-    <h1 class="title">회원가입</h1>
-    <article>
-        <div class="inputBox">
-            <label for="email">이메일</label>
-            <input
-                    type="text"
-                    name="email"
-                    id="email"
-                    placeholder="이메일을 입력하세요"
-            />
-            <p class="helperText" name="email"></p>
-        </div>
-        <div class="inputBox">
-            <label for="pw">비밀번호</label>
-            <input
-                    type="password"
-                    name="pw"
-                    id="pw"
-                    placeholder="비밀번호를 입력하세요"
-            />
-            <p class="helperText" name="pw"></p>
-        </div>
-        <div class="inputBox">
-            <label for="pwck">비밀번호 확인</label>
-            <input
-                    type="password"
-                    name="pw"
-                    id="pwck"
-                    placeholder="비밀번호를 한번 더 입력하세요"
-            />
-            <p class="helperText" name="pwck"></p>
-        </div>
-        <div class="inputBox">
-            <label for="nickname">닉네임</label>
-            <input
-                    type="text"
-                    name="nickname"
-                    id="nickname"
-                    placeholder="닉네임을 입력해 주세요"
-            />
-            <p class="helperText" name="nickname"></p>
-        </div>
-        <div class="inputBox">
-            <label for="profile">프로필 사진</label>
-            <input
-                    type="file"
-                    name="profile"
-                    id="profile"
-                    placeholder="프로필 사진을 업로드 해주세요"
-                    accept="image/*"
-            />
-        </div>
-        <div class="buttons">
-            <button id="signupBtn">회원 가입</button>
-            <a href="login.html">로그인 하러가기</a>
-        </div>
-    </article>
-</section>
-<div class="background"></div>
-</body>
+<body class="authPage authPage--signup">
+<a class="skipLink" href="#mainContent">본문으로 바로가기</a>
+<main class="wrap" id="mainContent">
+    <div class="authShell">
+        <aside class="brandPanel" aria-label="KTB HUB 소개">
+            <a class="brandLockup" href="/" aria-label="KTB HUB 랜딩 페이지로 이동">
+                <span class="brandName">KTB HUB</span>
+            </a>
+
+            <div class="brandMessage">
+                <p class="eyebrow">JOIN THE COMMUNITY</p>
+                <h2 class="twoLineMessage">
+                    <span>함께 배우는 순간이</span>
+                    <span>더 큰 성장으로 이어지도록</span>
+                </h2>
+                <p>
+                    KTB HUB에서 질문하고 기록하며, 같은 여정을 걷는
+                    동료들과 서로의 성장을 응원해보세요.
+                </p>
+            </div>
+
+            <ul class="brandBenefits" aria-label="가입 후 이용할 수 있는 기능">
+                <li>안내 게시글과 동료들의 글 확인</li>
+                <li>자유로운 게시글 작성</li>
+                <li>동료의 글에 댓글과 좋아요 남기기</li>
+            </ul>
+        </aside>
+
+        <section class="authPanel" aria-labelledby="signupTitle">
+            <article class="authCard authCard--signup">
+                <div class="authHeading">
+                    <p class="sectionLabel">CREATE ACCOUNT</p>
+                    <h1 class="title" id="signupTitle">KTB HUB 시작하기</h1>
+                    <p>기본 정보를 입력하고 커뮤니티에 참여하세요.</p>
+                </div>
+
+                <form class="authForm" aria-labelledby="signupTitle" novalidate>
+                    <div class="inputBox">
+                        <label for="email">이메일</label>
+                        <div class="inputControl">
+                            <input
+                                type="email"
+                                name="email"
+                                id="email"
+                                placeholder="example@ktb.com"
+                                autocomplete="email"
+                                aria-describedby="emailHelper"
+                                required
+                            />
+                        </div>
+                        <p
+                            class="helperText"
+                            id="emailHelper"
+                            name="email"
+                            role="status"
+                            aria-live="polite"
+                        ></p>
+                    </div>
+
+                    <div class="inputBox">
+                        <label for="pw">비밀번호</label>
+                        <div class="inputControl">
+                            <input
+                                type="password"
+                                name="pw"
+                                id="pw"
+                                placeholder="영문 대·소문자, 숫자, 특수문자 포함 8~20자"
+                                autocomplete="new-password"
+                                aria-describedby="passwordHelper"
+                                required
+                            />
+                        </div>
+                        <p
+                            class="helperText"
+                            id="passwordHelper"
+                            name="pw"
+                            role="status"
+                            aria-live="polite"
+                        ></p>
+                    </div>
+
+                    <div class="inputBox">
+                        <label for="pwck">비밀번호 확인</label>
+                        <div class="inputControl">
+                            <input
+                                type="password"
+                                name="pw"
+                                id="pwck"
+                                placeholder="비밀번호를 한 번 더 입력하세요"
+                                autocomplete="new-password"
+                                aria-describedby="passwordCheckHelper"
+                                required
+                            />
+                        </div>
+                        <p
+                            class="helperText"
+                            id="passwordCheckHelper"
+                            name="pwck"
+                            role="status"
+                            aria-live="polite"
+                        ></p>
+                    </div>
+
+                    <div class="inputBox">
+                        <label for="nickname">닉네임</label>
+                        <div class="inputControl">
+                            <input
+                                type="text"
+                                name="nickname"
+                                id="nickname"
+                                placeholder="2~10자의 한글, 영문 또는 숫자"
+                                autocomplete="nickname"
+                                aria-describedby="nicknameHelper"
+                                required
+                            />
+                        </div>
+                        <p
+                            class="helperText"
+                            id="nicknameHelper"
+                            name="nickname"
+                            role="status"
+                            aria-live="polite"
+                        ></p>
+                    </div>
+
+                    <div class="inputBox inputBox--file">
+                        <label for="profile">프로필 사진 <span>(선택)</span></label>
+                        <input
+                            type="file"
+                            name="profile"
+                            id="profile"
+                            accept="image/*"
+                            aria-describedby="profileHint profileHelper"
+                        />
+                        <p class="fieldHint" id="profileHint">
+                            선택하지 않으면 기본 프로필 이미지가 적용됩니다.
+                        </p>
+                        <p
+                            class="helperText"
+                            id="profileHelper"
+                            name="profile"
+                            role="status"
+                            aria-live="polite"
+                        ></p>
+                    </div>
+
+                    <div class="buttons">
+                        <button id="signupBtn" type="submit" disabled>회원가입</button>
+                        <p class="switchPageText">
+                            이미 계정이 있나요?
+                            <a href="/html/login.html">로그인</a>
+                        </p>
+                    </div>
+                </form>
+            </article>
+        </section>
+    </div>
+</main>
+<div class="background" aria-hidden="true"></div>
 <script src="../js/signup.js" type="module"></script>
+</body>
 </html>

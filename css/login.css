@@ -1,212 +1,810 @@
 @import url('./common/layout.css');
 @import url('../component/header/header.css');
 
-.title {
-    font-size: 32px;
-    line-height: 38.41px;
-    letter-spacing: -0.02em;
-    font-weight: 700;
-    color: #000000;
-    margin-bottom: 67px;
+:root {
+    --auth-brand: var(--color-brand, #fee500);
+    --auth-brand-hover: var(--color-brand-hover, #f3d900);
+    --auth-brand-soft: var(--color-brand-soft, #fff9cc);
+    --auth-ink: var(--color-ink, #1f2024);
+    --auth-muted: var(--color-muted, #666a73);
+    --auth-subtle: var(--color-muted-light, #667085);
+    --auth-line: var(--color-border, #e4e5e8);
+    --auth-surface: var(--color-surface, #ffffff);
+    --auth-background: var(--color-canvas, #f5f5f1);
+    --auth-danger: var(--color-danger, #d7373f);
+    --auth-focus: var(--color-info, #4f6ef7);
+    --auth-radius-lg: var(--radius-xl, 28px);
+    --auth-radius-md: var(--radius-md, 16px);
+    --auth-shadow: var(
+        --shadow-lg,
+        0 24px 70px rgba(29, 31, 36, 0.12)
+    );
 }
 
-article {
+body.authPage,
+body.accountPage {
     width: 100%;
-    max-width: 360px;
+    min-width: 0;
+    min-height: 100vh;
+    min-height: 100svh;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    display: block;
+    color: var(--auth-ink);
+    background: var(--auth-background);
+}
+
+.authPage .wrap,
+.accountPage .wrap {
+    width: 100%;
+    min-height: calc(100vh - var(--header-height, 72px));
+    min-height: calc(100svh - var(--header-height, 72px));
+    padding: 48px 24px 64px;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    row-gap: 35px;
+    background: transparent;
+}
+
+.authPage .background,
+.accountPage .background {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        radial-gradient(circle at 12% 20%, rgba(254, 229, 0, 0.2), transparent 28%),
+        radial-gradient(circle at 90% 80%, rgba(31, 32, 36, 0.07), transparent 24%),
+        var(--auth-background);
+}
+
+.authPage .background::before,
+.accountPage .background::before {
+    display: none;
+}
+
+.authShell {
+    width: min(1080px, 100%);
+    display: grid;
+    grid-template-columns: minmax(320px, 0.9fr) minmax(430px, 1.1fr);
+    overflow: hidden;
+    border: 1px solid rgba(31, 32, 36, 0.08);
+    border-radius: var(--auth-radius-lg);
+    background: var(--auth-surface);
+    box-shadow: var(--auth-shadow);
+}
+
+.brandPanel {
+    position: relative;
+    isolation: isolate;
+    min-height: 610px;
+    padding: clamp(36px, 5vw, 64px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    color: #ffffff;
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.07), transparent 42%),
+        #1f2024;
+}
+
+.brandPanel::before,
+.brandPanel::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    border-radius: 50%;
+    background: var(--auth-brand);
+}
+
+.brandPanel::before {
+    width: 260px;
+    height: 260px;
+    top: -150px;
+    right: -105px;
+    opacity: 0.95;
+}
+
+.brandPanel::after {
+    width: 190px;
+    height: 190px;
+    right: -105px;
+    bottom: -92px;
+    opacity: 0.18;
+}
+
+.brandLockup {
+    width: fit-content;
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    overflow: visible;
+    padding: 2px 4px 4px 0;
+    color: #ffffff;
+}
+
+.brandName {
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+    white-space: nowrap;
+}
+
+.brandMessage {
+    margin: auto 0;
+}
+
+.eyebrow,
+.sectionLabel {
+    color: #745f00;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.4;
+    letter-spacing: 0.11em;
+}
+
+.brandMessage .eyebrow {
+    margin-bottom: 18px;
+    color: var(--auth-brand);
+}
+
+.brandMessage h2 {
+    margin-bottom: 22px;
+    color: #ffffff;
+    font-size: clamp(28px, 3vw, 38px);
+    font-weight: 800;
+    line-height: 1.3;
+    letter-spacing: -0.045em;
+}
+
+.brandMessage h2.twoLineMessage span {
+    display: block;
+    white-space: nowrap;
+}
+
+.brandMessage > p:last-child {
+    max-width: 370px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 15px;
+    line-height: 1.8;
+    word-break: keep-all;
+}
+
+.brandBenefits {
+    display: grid;
+    gap: 12px;
+    list-style: none;
+}
+
+.brandBenefits li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.brandBenefits li::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    flex: 0 0 7px;
+    border-radius: 50%;
+    background: var(--auth-brand);
+    box-shadow: 0 0 0 4px rgba(254, 229, 0, 0.12);
+}
+
+.authPanel {
+    min-width: 0;
+    padding: clamp(42px, 6vw, 72px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--auth-surface);
+}
+
+.authCard {
+    width: min(430px, 100%);
+}
+
+.authHeading {
+    margin-bottom: 34px;
+}
+
+.title {
+    margin: 8px 0 10px;
+    color: var(--auth-ink);
+    font-size: clamp(28px, 3.4vw, 36px);
+    font-weight: 800;
+    line-height: 1.25;
+    letter-spacing: -0.045em;
+}
+
+.authHeading > p:last-child,
+.accountHeading > p:last-child {
+    color: var(--auth-muted);
+    font-size: 14px;
+    line-height: 1.65;
+    word-break: keep-all;
+}
+
+.authForm,
+.accountForm {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.authCard--signup .authForm {
+    gap: 14px;
 }
 
 .inputBox {
+    position: relative;
+    width: 100%;
     display: flex;
     flex-direction: column;
-    row-gap: 8px;
-    width: 100%;
-
-    position: relative;
+    gap: 7px;
 }
 
-.inputBox label {
-    font-size: 15px;
-    line-height: 17px;
-    letter-spacing: -0.02em;
+.inputBox label,
+.fieldLabel {
+    color: var(--auth-ink);
+    font-size: 13px;
     font-weight: 700;
-    color: #000000;
+    line-height: 1.5;
+    letter-spacing: -0.015em;
 }
-.inputBox input {
-    font-size: 14px;
-    color: #000000;
-    line-height: 16.8px;
+
+.inputBox label span {
+    color: var(--auth-subtle);
+    font-weight: 500;
+}
+
+.inputControl {
+    position: relative;
     width: 100%;
-    padding: 8px 10px;
-
-    border: 1px solid #000000;
-    border-radius: 4px;
-
-    background-color: transparent;
 }
 
-.inputBox input[type='text'] {
-    flex-grow: 1; /* 입력 필드가 가능한 많은 공간을 차지하도록 함 */
-    padding-right: 10px; /* 오른쪽에 Lottie 애니메이션을 위한 공간 확보 */
+.inputBox input:not([type='file']) {
+    width: 100%;
+    height: 50px;
+    padding: 0 15px;
+    border: 1px solid var(--auth-line);
+    border-radius: 12px;
+    outline: none;
+    color: var(--auth-ink);
+    background: var(--auth-surface);
+    font-size: 14px;
+    line-height: 1.4;
+    transition:
+        border-color 0.18s ease,
+        box-shadow 0.18s ease,
+        background-color 0.18s ease;
 }
+
+.inputBox input:not([type='file'])::placeholder {
+    color: var(--auth-muted);
+}
+
+.inputBox input:not([type='file']):hover {
+    border-color: #c7c9ce;
+}
+
+.inputBox input:not([type='file']):focus {
+    border-color: #b69c00;
+    box-shadow: 0 0 0 3px rgba(254, 229, 0, 0.2);
+}
+
+.authPage--login #id {
+    padding-right: 44px;
+}
+
 .inputBox .lottie {
     position: absolute;
-    right: 10px; /* 입력 필드 오른쪽 끝에서 10px 떨어진 위치 */
-    top: 50%; /* 상단에서 50% 위치 */
-
-    width: 20px; /* Lottie 애니메이션 크기, 필요에 따라 조정 */
-    height: 20px; /* Lottie 애니메이션 크기, 필요에 따라 조정 */
+    top: 50%;
+    right: 12px;
+    width: 24px;
+    height: 24px;
+    transform: translateY(-50%);
+    pointer-events: none;
 }
 
 .inputBox input[type='file'] {
-    border: none;
-    padding: 8px 0px;
+    width: 100%;
+    min-height: 50px;
+    padding: 7px 9px;
+    border: 1px dashed #c7c9ce;
+    border-radius: 12px;
+    color: var(--auth-muted);
+    background: #fafafa;
+    font-size: 13px;
+    cursor: pointer;
 }
 
-.inputBox > .helperText {
-    position: absolute;
-    bottom: -4px;
-    transform: translate(0, 100%);
+.inputBox input[type='file']::file-selector-button {
+    height: 34px;
+    margin-right: 10px;
+    padding: 0 13px;
+    border: 0;
+    border-radius: 9px;
+    color: var(--auth-ink);
+    background: var(--auth-brand-soft);
+    font-weight: 700;
+    cursor: pointer;
+}
 
-    color: #f00;
-    font-size: 12px;
-    font-style: normal;
-    font-weight: 400;
-    line-height: normal;
+.helperText {
+    min-height: 17px;
+    color: var(--auth-danger);
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.45;
+    word-break: keep-all;
+}
+
+.helperText:empty {
+    min-height: 0;
+}
+
+.fieldHint {
+    color: var(--auth-subtle);
+    font-size: 11px;
+    line-height: 1.45;
 }
 
 .buttons {
-    position: relative;
+    width: 100%;
+    margin-top: 8px;
     display: flex;
     flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+}
+
+.buttons > button:not(.dangerTextButton) {
     width: 100%;
-    margin-top: 42px;
-}
-.buttons p {
-    position: absolute;
-    top: -4px;
-    transform: translate(0, -100%);
-    color: #f00;
-    font-size: 12px;
-    font-style: normal;
-    font-weight: 400;
-    line-height: normal;
-}
-.buttons button,
-a {
+    min-height: 50px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: 12px;
+    color: #1f2024;
+    background: var(--auth-brand) !important;
     font-size: 14px;
+    font-weight: 800;
     cursor: pointer;
+    transition:
+        transform 0.16s ease,
+        box-shadow 0.16s ease,
+        background-color 0.16s ease;
+}
+
+.buttons > button:not(.dangerTextButton):not(:disabled):hover {
+    background: var(--auth-brand-hover) !important;
+    box-shadow: 0 8px 20px rgba(138, 116, 0, 0.16);
+    transform: translateY(-1px);
+}
+
+.buttons > button:not(.dangerTextButton):disabled {
+    color: #8d9097;
+    background: #e5e6e8 !important;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.switchPageText {
+    color: var(--auth-muted);
+    font-size: 13px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.switchPageText a {
+    display: inline;
+    color: #6f5c00;
+    font-weight: 800;
+    text-decoration: underline;
+    text-decoration-color: rgba(111, 92, 0, 0.32);
+    text-underline-offset: 3px;
+}
+
+.accountWrap {
+    align-items: flex-start !important;
+}
+
+.accountShell {
+    width: min(720px, 100%);
+}
+
+.accountHeading {
+    margin-bottom: 28px;
+}
+
+.accountHeading .title {
+    margin-bottom: 8px;
+}
+
+.accountCard {
+    position: relative;
     width: 100%;
-    height: 33px;
+    padding: clamp(28px, 5vw, 48px);
+    border: 1px solid rgba(31, 32, 36, 0.08);
+    border-radius: 24px;
+    background: var(--auth-surface);
+    box-shadow: 0 18px 54px rgba(29, 31, 36, 0.09);
+}
+
+.profileSection {
+    margin-bottom: 36px;
+    padding-bottom: 32px;
     display: flex;
-    justify-content: center;
     align-items: center;
-}
-
-.buttons button {
-    background-color: #aca0eb;
-    border-radius: 4px;
-    border: none;
-
-    color: #ffffff;
-    font-weight: 700;
-}
-
-.buttons a {
-    color: #000000;
-    font-weight: 400;
-}
-
-.deleteFile {
-    cursor: pointer;
-    padding-left: 10px;
-    color: red;
-}
-
-#toastContainer {
-    /* position: fixed;
-    top: 0;
-    right: 0; */
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 10px;
-    padding: 20px;
-    z-index: 100;
-}
-
-.toastMessage {
-    background-color: #7f6aee;
-    color: #ffffff;
-    padding: 10px 20px;
-    margin-bottom: 5px;
-    display: inline-block;
-    opacity: 0;
-    transition: opacity 0.5s;
-    border-radius: 30px;
+    gap: 24px;
+    border-bottom: 1px solid var(--auth-line);
 }
 
 .profileUploadContainer {
     position: relative;
-    display: inline-block;
-    width: 100px;
-    height: 100px;
-    overflow: visible; /* X 버튼이 바깥으로 나오도록 */
+    width: 112px;
+    height: 112px;
+    flex: 0 0 112px;
     border-radius: 50%;
+}
+
+#profilePreview {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border: 4px solid #ffffff;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #ececef;
+    box-shadow: 0 0 0 1px var(--auth-line), 0 8px 24px rgba(31, 32, 36, 0.12);
+}
+
+.accountPage .profileUploadContainer #profile {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.profileUploadButton {
+    position: absolute;
+    left: 50%;
+    bottom: -8px;
+    min-width: 76px;
+    padding: 8px 12px;
+    border: 1px solid var(--auth-line);
+    border-radius: 999px;
+    color: var(--auth-ink);
+    background: #ffffff;
+    box-shadow: 0 5px 14px rgba(31, 32, 36, 0.12);
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    cursor: pointer;
+    transform: translateX(-50%);
+}
+
+.profileUploadContainer:focus-within .profileUploadButton {
+    outline: 3px solid var(--auth-focus);
+    outline-offset: 3px;
 }
 
 .profileRemoveButton {
     position: absolute;
-    top: -4px;
-    right: -4px;
-    width: 24px;
-    height: 24px;
+    top: 1px;
+    right: 1px;
+    z-index: 3;
+    width: 28px;
+    height: 28px;
+    border: 3px solid #ffffff;
     border-radius: 50%;
-    border: 2px solid #fff;
-    background-color: #ff4d4f;
-    color: #fff;
-    font-size: 16px;
-    font-weight: 700;
-    line-height: 18px;
-    text-align: center;
-    cursor: pointer;
-    display: none;
+    display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 10;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    transition: transform 0.15s ease, background-color 0.15s ease;
+    color: #ffffff;
+    background: var(--auth-danger);
+    box-shadow: 0 4px 12px rgba(215, 55, 63, 0.25);
+    font-size: 17px;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform 0.16s ease;
 }
 
 .profileRemoveButton:hover {
-    background-color: #ff1a1a;
-    transform: scale(1.1);
+    transform: scale(1.07);
 }
 
-.profileUploadButton {
-    display: block;
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    background-color: rgba(0, 0, 0, 0.55);
-    color: white;
-    padding: 4px 10px;
-    border: 1px solid rgba(255, 255, 255, 0.9);
-    cursor: pointer;
-    text-align: center;
-    white-space: nowrap;
-    border-radius: 16px;
-    font-size: 12px;
-    z-index: 2;
+.profileCopy h2 {
+    margin-bottom: 6px;
+    color: var(--auth-ink);
+    font-size: 16px;
+    line-height: 1.4;
 }
-#profilePreview {
+
+.profileCopy p {
+    color: var(--auth-muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.accountForm {
+    gap: 22px;
+}
+
+.defaultText {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
+    min-height: 50px;
+    padding: 0 15px;
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--auth-line);
+    border-radius: 12px;
+    color: var(--auth-muted);
+    background: #f7f7f8;
+    font-size: 14px;
+}
+
+.accountActions {
+    margin-top: 6px;
+}
+
+.dangerTextButton {
+    width: fit-content;
+    min-height: 32px;
+    align-self: center;
+    padding: 4px 8px;
+    border: 0;
+    color: var(--auth-danger);
+    background: transparent;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+.securityNotice {
+    margin-bottom: 30px;
+    padding: 18px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    border-radius: var(--auth-radius-md);
+    background: var(--auth-brand-soft);
+}
+
+.securityIcon {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    color: #6f5c00;
+    background: rgba(254, 229, 0, 0.55);
+}
+
+.securityNotice h2 {
+    margin-bottom: 4px;
+    color: var(--auth-ink);
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.securityNotice p {
+    color: var(--auth-muted);
+    font-size: 12px;
+    line-height: 1.6;
+    word-break: keep-all;
+}
+
+#toastContainer {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    z-index: 10000;
+    width: min(360px, calc(100vw - 32px));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+    transform: translateX(-50%);
+}
+
+.toastMessage {
+    max-width: 100%;
+    padding: 11px 18px;
+    border-radius: 999px;
+    color: #ffffff;
+    background: #1f2024;
+    box-shadow: 0 10px 30px rgba(31, 32, 36, 0.24);
+    font-size: 13px;
+    font-weight: 700;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.toastMessage.is-visible {
+    opacity: 1;
+}
+
+.toastMessage.is-leaving {
+    opacity: 0;
+}
+
+.authPage :is(a, button, input):focus-visible,
+.accountPage :is(a, button, input):focus-visible {
+    outline: 3px solid var(--auth-focus);
+    outline-offset: 3px;
+}
+
+@media (max-width: 880px) {
+    .authPage .wrap,
+    .accountPage .wrap {
+        padding: 36px 20px 48px;
+    }
+
+    .authShell {
+        width: min(620px, 100%);
+        grid-template-columns: 1fr;
+    }
+
+    .brandPanel {
+        min-height: auto;
+        padding: 30px 36px;
+    }
+
+    .brandMessage {
+        margin: 32px 0 0;
+    }
+
+    .brandMessage h2 {
+        margin-bottom: 12px;
+        font-size: 27px;
+    }
+
+    .brandMessage > p:last-child {
+        font-size: 13px;
+        line-height: 1.65;
+    }
+
+    .brandBenefits {
+        display: none;
+    }
+
+    .authPanel {
+        padding: 42px 36px 48px;
+    }
+}
+
+@media (max-width: 560px) {
+    .authPage .wrap,
+    .accountPage .wrap {
+        padding: 24px 16px 32px;
+        align-items: flex-start;
+    }
+
+    .authShell {
+        border-radius: 22px;
+        box-shadow: 0 16px 46px rgba(29, 31, 36, 0.1);
+    }
+
+    .brandPanel {
+        padding: 24px;
+    }
+
+    .brandPanel::before {
+        width: 190px;
+        height: 190px;
+        top: -120px;
+        right: -90px;
+    }
+
+    .brandName {
+        font-size: 16px;
+    }
+
+    .brandMessage {
+        margin-top: 26px;
+    }
+
+    .brandMessage h2 {
+        font-size: 23px;
+        line-height: 1.35;
+    }
+
+    .brandMessage h2 br {
+        display: none;
+    }
+
+    .authPanel {
+        padding: 34px 24px 38px;
+    }
+
+    .authHeading {
+        margin-bottom: 28px;
+    }
+
+    .title {
+        font-size: 28px;
+    }
+
+    .accountHeading {
+        padding: 0 4px;
+        margin-bottom: 22px;
+    }
+
+    .accountCard {
+        padding: 28px 22px;
+        border-radius: 20px;
+    }
+
+    .profileSection {
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .profileUploadContainer {
+        width: 96px;
+        height: 96px;
+        flex-basis: 96px;
+    }
+
+    .securityNotice {
+        padding: 16px;
+    }
+}
+
+@media (max-width: 390px) {
+    .authPage .wrap,
+    .accountPage .wrap {
+        padding-right: 12px;
+        padding-left: 12px;
+    }
+
+    .brandPanel,
+    .authPanel {
+        padding-right: 20px;
+        padding-left: 20px;
+    }
+
+    .brandMessage h2.twoLineMessage {
+        font-size: 21px;
+    }
+
+    .profileSection {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .profileCopy {
+        padding-top: 8px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .authPage *,
+    .accountPage * {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
 }

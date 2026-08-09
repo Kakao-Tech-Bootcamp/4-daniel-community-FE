@@ -2,8 +2,9 @@ import { resolveImageUrl, padTo2Digits } from '../../utils/function.js';
 import Dialog from '../dialog/dialog.js';
 import { deleteComment, updateComment } from '../../api/commentRequest.js';
 
-const DEFAULT_PROFILE_IMAGE = '../public/image/profile/default.jpg';
+const DEFAULT_PROFILE_IMAGE = '/public/profile_default.svg';
 const HTTP_OK = 200;
+const MAX_EDIT_COMMENT_LENGTH = 1500;
 
 const normalizeComment = data => ({
     id: data.id || data.comment_id,
@@ -20,9 +21,59 @@ const normalizeComment = data => ({
     },
 });
 
+const formatCommentDate = value => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return { dateTime: '', label: '' };
+    }
+
+    return {
+        dateTime: date.toISOString(),
+        label: `${date.getFullYear()}-${padTo2Digits(date.getMonth() + 1)}-${padTo2Digits(date.getDate())} ${padTo2Digits(date.getHours())}:${padTo2Digits(date.getMinutes())}:${padTo2Digits(date.getSeconds())}`,
+    };
+};
+
 const CommentItem = (data, writerId, postId, commentId) => {
     const comment = normalizeComment(data);
     const currentCommentId = commentId || comment.id;
+    const authorName = comment.author.nickname || '알 수 없는 사용자';
+
+    const commentItem = document.createElement('article');
+    commentItem.className = 'commentItem';
+    commentItem.setAttribute('aria-label', `${authorName}님의 댓글`);
+
+    const picture = document.createElement('picture');
+    picture.className = 'commentProfile';
+
+    const img = document.createElement('img');
+    img.className = 'commentImg';
+    img.src = resolveImageUrl(
+        comment.author.profileImageUrl,
+        DEFAULT_PROFILE_IMAGE,
+    );
+    img.alt = `${authorName}님의 프로필 이미지`;
+    img.loading = 'lazy';
+    picture.appendChild(img);
+
+    const commentInfoWrap = document.createElement('div');
+    commentInfoWrap.className = 'commentInfoWrap';
+
+    const infoDiv = document.createElement('div');
+    infoDiv.className = 'commentInfoHeader';
+
+    const authorHeading = document.createElement('h3');
+    authorHeading.textContent = authorName;
+    infoDiv.appendChild(authorHeading);
+
+    const time = document.createElement('time');
+    const formattedDate = formatCommentDate(comment.createdAt);
+    time.dateTime = formattedDate.dateTime;
+    time.textContent = formattedDate.label;
+    infoDiv.appendChild(time);
+
+    const commentText = document.createElement('p');
+    commentText.className = 'commentText';
+    commentText.textContent = comment.content;
 
     const CommentDelete = () => {
         Dialog(
@@ -38,28 +89,22 @@ const CommentItem = (data, writerId, postId, commentId) => {
                     return;
                 }
 
-                if (status === HTTP_OK)
+                if (status === HTTP_OK) {
                     location.href = '/html/board.html?id=' + postId;
+                }
             },
         );
     };
 
-    const CommentModify = () => {
-        const p = commentInfoWrap.querySelector('p');
-        if (!p) return;
-
-        const originalContent = p.innerHTML.replace(/<br>/g, '\n');
+    const CommentModify = event => {
+        const originalContent = commentText.textContent || '';
+        const triggerButton = event.currentTarget;
 
         const textarea = document.createElement('textarea');
         textarea.className = 'commentEditTextarea';
         textarea.value = originalContent;
-        textarea.maxLength = 1500;
-
-        textarea.addEventListener('input', () => {
-            if (textarea.value.length > 1500) {
-                textarea.value = textarea.value.substring(0, 1500);
-            }
-        });
+        textarea.maxLength = MAX_EDIT_COMMENT_LENGTH;
+        textarea.setAttribute('aria-label', `${authorName}님의 댓글 수정`);
 
         const editWrap = document.createElement('div');
         editWrap.className = 'commentEditWrap';
@@ -67,7 +112,17 @@ const CommentItem = (data, writerId, postId, commentId) => {
         const editActions = document.createElement('div');
         editActions.className = 'commentEditActions';
 
+        const cancelButton = document.createElement('button');
+        cancelButton.type = 'button';
+        cancelButton.className = 'commentEditCancel';
+        cancelButton.textContent = '취소';
+        cancelButton.onclick = () => {
+            commentInfoWrap.replaceChild(commentText, editWrap);
+            triggerButton.focus();
+        };
+
         const saveButton = document.createElement('button');
+        saveButton.type = 'button';
         saveButton.className = 'commentEditSave';
         saveButton.textContent = '저장';
         saveButton.onclick = async () => {
@@ -77,91 +132,60 @@ const CommentItem = (data, writerId, postId, commentId) => {
             }
 
             const updatedContent = textarea.value;
+            saveButton.disabled = true;
+            saveButton.setAttribute('aria-busy', 'true');
 
             const { ok } = await updateComment(
                 postId,
                 currentCommentId,
                 updatedContent,
             );
-            if (!ok)
-                return Dialog('수정 실패', '댓글 수정에 실패하였습니다.');
+
+            if (!ok) {
+                saveButton.disabled = false;
+                saveButton.removeAttribute('aria-busy');
+                Dialog('수정 실패', '댓글 수정에 실패하였습니다.');
+                return;
+            }
 
             location.href = '/html/board.html?id=' + postId;
         };
 
-        const cancelButton = document.createElement('button');
-        cancelButton.className = 'commentEditCancel';
-        cancelButton.textContent = '취소';
-        cancelButton.onclick = () => {
-            p.innerHTML = originalContent.replace(/\n/g, '<br>');
-            commentInfoWrap.replaceChild(p, editWrap);
-        };
-
-        editActions.appendChild(cancelButton);
-        editActions.appendChild(saveButton);
-        editWrap.appendChild(textarea);
-        editWrap.appendChild(editActions);
-
-        commentInfoWrap.replaceChild(editWrap, p);
+        editActions.append(cancelButton, saveButton);
+        editWrap.append(textarea, editActions);
+        commentInfoWrap.replaceChild(editWrap, commentText);
+        textarea.focus();
+        textarea.setSelectionRange(textarea.value.length, textarea.value.length);
     };
-
-    const commentItem = document.createElement('div');
-    commentItem.className = 'commentItem';
-
-    const picture = document.createElement('picture');
-
-    const img = document.createElement('img');
-    img.className = 'commentImg';
-    img.src = resolveImageUrl(
-        comment.author.profileImageUrl,
-        DEFAULT_PROFILE_IMAGE,
-    );
-    picture.appendChild(img);
-
-    const commentInfoWrap = document.createElement('div');
-    commentInfoWrap.className = 'commentInfoWrap';
-
-    const infoDiv = document.createElement('div');
-    infoDiv.className = 'commentInfoHeader';
-
-    const h3 = document.createElement('h3');
-    h3.textContent = comment.author.nickname;
-    infoDiv.appendChild(h3);
-
-    const h4 = document.createElement('h4');
-    const date = new Date(comment.createdAt);
-    const formattedDate = `${date.getFullYear()}-${padTo2Digits(date.getMonth() + 1)}-${padTo2Digits(date.getDate())} ${padTo2Digits(date.getHours())}:${padTo2Digits(date.getMinutes())}:${padTo2Digits(date.getSeconds())}`;
-    h4.textContent = formattedDate;
-    infoDiv.appendChild(h4);
 
     if (
         comment.author.userId &&
         parseInt(comment.author.userId, 10) === parseInt(writerId, 10)
     ) {
-        const buttonWrap = document.createElement('span');
-
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = '삭제';
-        deleteButton.onclick = CommentDelete;
+        const buttonWrap = document.createElement('div');
+        buttonWrap.className = 'commentActions';
+        buttonWrap.setAttribute('aria-label', '댓글 관리');
 
         const modifyButton = document.createElement('button');
+        modifyButton.type = 'button';
+        modifyButton.className = 'commentModifyButton';
         modifyButton.textContent = '수정';
+        modifyButton.setAttribute('aria-label', `${authorName}님의 댓글 수정`);
         modifyButton.onclick = CommentModify;
 
-        buttonWrap.appendChild(modifyButton);
-        buttonWrap.appendChild(deleteButton);
+        const deleteButton = document.createElement('button');
+        deleteButton.type = 'button';
+        deleteButton.className = 'commentDeleteButton';
+        deleteButton.textContent = '삭제';
+        deleteButton.setAttribute('aria-label', `${authorName}님의 댓글 삭제`);
+        deleteButton.onclick = CommentDelete;
 
+        buttonWrap.append(modifyButton, deleteButton);
         infoDiv.appendChild(buttonWrap);
     }
 
-    const p = document.createElement('p');
-    p.innerHTML = comment.content.replace(/(?:\r\n|\r|\n)/g, '<br>');
-
-    commentInfoWrap.appendChild(infoDiv);
-    commentInfoWrap.appendChild(p);
-
-    commentItem.appendChild(picture);
-    commentItem.appendChild(commentInfoWrap);
+    commentInfoWrap.append(infoDiv, commentText);
+    commentItem.append(picture, commentInfoWrap);
 
     return commentItem;
 };

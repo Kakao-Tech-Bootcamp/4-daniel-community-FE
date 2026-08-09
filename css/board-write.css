@@ -1,96 +1,235 @@
 @import url('./common/layout.css');
 @import url('../component/header/header.css');
 
-.wrap {
-    width: 100%;
-    padding-left: 16px;
-    padding-right: 16px;
-
-    justify-content: flex-start;
-    row-gap: 16px;
-}
-
-h2 {
-    font-size: 24px;
-    font-weight: 700;
-    line-height: 31px;
-    letter-spacing: -0.02em;
-    text-align: center;
-    color: rgba(69, 72, 84, 1);
-}
-
-.inputBox {
+.editorWrap {
+    max-width: calc(var(--content-reading) + 48px);
     display: flex;
     flex-direction: column;
-    row-gap: 8px;
-    width: 100%;
+    gap: 28px;
 }
 
-.inputBox label {
-    font-size: 14px;
-    line-height: 17px;
-    letter-spacing: -0.02em;
+.editorHeading {
+    padding: 8px 4px 0;
+}
+
+.editorEyebrow {
+    margin-bottom: 10px;
+    color: var(--color-muted);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+}
+
+.editorHeading h1 {
+    color: var(--color-ink);
+    font-size: clamp(28px, 4vw, 38px);
+    font-weight: 850;
+    line-height: 1.25;
+    letter-spacing: -0.045em;
+}
+
+.editorHeading > p:last-child {
+    margin-top: 10px;
+    color: var(--color-muted);
+    font-size: 15px;
+    line-height: 1.65;
+    word-break: keep-all;
+}
+
+.editorCard {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    padding: 32px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-sm);
+}
+
+.editorField {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.fieldHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.characterCount {
+    color: var(--color-muted-light);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.characterCount strong {
+    color: var(--color-muted);
     font-weight: 700;
-    color: rgba(69, 72, 84, 1);
-
-    padding: 16px 16px;
-
-    border-bottom: 1px solid #00000029;
-}
-.inputBox input {
-    width: 100%;
-    padding: 16px;
-    border: none;
-    border-bottom: 1px solid #00000029;
-    background-color: transparent;
 }
 
-.inputBox textarea {
-    width: 100%;
-    padding: 16px;
-    height: 200px;
-    resize: none;
-    outline: none;
-
-    border: none;
-    border-bottom: 1px solid #00000029;
-    background-color: transparent;
+.editorCard .textInput {
+    font-size: 15px;
+    font-weight: 600;
 }
 
-.wrap button {
-    width: 80%;
-    height: 33px;
-    margin-top: 20px;
-    border-radius: 4px;
-    cursor: pointer;
+.editorTextarea {
+    min-height: 320px;
+    font-size: 15px;
+}
 
-    background-color: #aca0eb;
+.imageField {
+    padding-top: 2px;
+}
 
-    font-size: 14px;
-    font-weight: 700;
-    line-height: 16.8px;
-    letter-spacing: -0.02em;
+.uploadZone {
+    min-height: 144px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 22px;
+    border: 1px dashed var(--color-border-strong);
+    border-radius: 12px;
+    color: var(--color-muted);
+    background: var(--color-surface-subtle);
     text-align: center;
-    color: rgba(255, 255, 255, 1);
-
-    border: none;
+    transition: border-color 160ms ease, background-color 160ms ease;
 }
 
-.non-border {
-    border: none !important;
-    padding: 0 16px !important;
+.uploadZone:hover {
+    border-color: var(--color-info);
+    background: #f7f8ff;
+}
+
+.uploadSymbol {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    color: var(--color-ink);
+    background: var(--color-brand);
+    font-size: 23px;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.uploadZone strong {
+    color: var(--color-ink-subtle);
+    font-size: 14px;
+}
+
+.uploadZone > span:last-child {
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.fileInput {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+}
+
+.fileInput:focus-visible + .imagePreviewText,
+.imageField:focus-within .uploadZone {
+    border-color: var(--color-info);
+    outline: 3px solid rgba(79, 110, 247, 0.16);
+    outline-offset: 2px;
+}
+
+.imagePreviewText {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 48px;
+    padding: 8px 10px 8px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    color: var(--color-ink-subtle);
+    background: var(--color-surface);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.imagePreviewText > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.imagePreviewText[hidden] {
+    display: none;
 }
 
 .deleteFile {
-    cursor: pointer;
-    padding-left: 10px;
-    color: red;
+    min-width: 36px;
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    color: var(--color-danger);
+    background: var(--color-danger-soft);
+    font-size: 12px;
+    font-weight: 700;
 }
 
-.helperText {
-    color: #f00;
-    font-size: 12px;
-    font-style: normal;
-    font-weight: 400;
-    line-height: normal;
+.editorActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 4px;
+}
+
+.editorActions > * {
+    min-width: 120px;
+}
+
+@media (max-width: 600px) {
+    .editorWrap {
+        gap: 22px;
+    }
+
+    .editorHeading {
+        padding-inline: 2px;
+    }
+
+    .editorHeading h1 {
+        font-size: 28px;
+    }
+
+    .editorCard {
+        gap: 24px;
+        padding: 22px 18px;
+        border-radius: 16px;
+    }
+
+    .editorTextarea {
+        min-height: 260px;
+    }
+
+    .uploadZone {
+        min-height: 132px;
+    }
+
+    .editorActions {
+        display: grid;
+        grid-template-columns: 1fr 1.4fr;
+    }
+
+    .editorActions > * {
+        min-width: 0;
+    }
 }

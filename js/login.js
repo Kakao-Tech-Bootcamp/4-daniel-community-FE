@@ -7,127 +7,164 @@ import {
 import { userLogin } from '../api/loginRequest.js';
 
 const HTTP_OK = 200;
-const MAX_PASSWORD_LENGTH = 8;
+const MIN_PASSWORD_LENGTH = 8;
+
+const emailInput = document.getElementById('id');
+const passwordInput = document.getElementById('pw');
+const loginButton = document.getElementById('login');
+const helperTextElement = document.querySelector('.helperText');
+const authForm = document.querySelector('.authForm');
 
 const loginData = {
     id: '',
     password: '',
 };
 
-const updateHelperText = (helperTextElement, message = '') => {
-    helperTextElement.textContent = message;
+let isSubmitting = false;
+let lottieInstance = null;
+
+const updateHelperText = (message = '') => {
+    if (helperTextElement) helperTextElement.textContent = message;
 };
 
-const loginClick = async () => {
-    const { id: email, password } = loginData;
-    const helperTextElement = document.querySelector('.helperText');
-
-    const { ok, status, code } = await userLogin(email, password);
-    if (!ok) {
-        updateHelperText(
-            helperTextElement,
-            code === 'INVALID_INPUT'
-                ? '*입력값을 확인해주세요.'
-                : '*입력하신 계정 정보가 정확하지 않았습니다.',
-        );
-        return;
-    }
-
-    if (status !== HTTP_OK) {
-        updateHelperText(
-            helperTextElement,
-            '*입력하신 계정 정보가 정확하지 않았습니다.',
-        );
-        return;
-    }
-    updateHelperText(helperTextElement);
-
-    location.href = '/html/index.html';
+const setCredentialInvalid = isInvalid => {
+    const ariaValue = String(isInvalid);
+    emailInput.setAttribute('aria-invalid', ariaValue);
+    passwordInput.setAttribute('aria-invalid', ariaValue);
 };
 
-const observeSignupData = () => {
+const observeLoginData = () => {
     const { id: email, password } = loginData;
-    const button = document.querySelector('#login');
-    const helperTextElement = document.querySelector('.helperText');
-
     const isValidEmail = validEmail(email);
+
     updateHelperText(
-        helperTextElement,
         isValidEmail || !email
             ? ''
             : '*올바른 이메일 주소 형식을 입력해주세요. (예: example@example.com)',
     );
 
-    button.disabled = !(
-        email &&
-        isValidEmail &&
-        password &&
-        password.length >= MAX_PASSWORD_LENGTH
+    emailInput.setAttribute(
+        'aria-invalid',
+        String(Boolean(email) && !isValidEmail),
     );
-    button.style.backgroundColor = button.disabled ? '#ACA0EB' : '#7F6AEE';
+    passwordInput.setAttribute('aria-invalid', 'false');
+    loginButton.disabled =
+        isSubmitting ||
+        !email ||
+        !isValidEmail ||
+        !password ||
+        password.length < MIN_PASSWORD_LENGTH;
 };
 
-const eventSet = () => {
-    document.getElementById('login').addEventListener('click', loginClick);
+const loginClick = async () => {
+    if (loginButton.disabled || isSubmitting) return;
 
-    document.addEventListener('keypress', event => {
-        if (event.key === 'Enter') {
-            loginClick();
-        }
-    });
+    const { id: email, password } = loginData;
+    isSubmitting = true;
+    loginButton.disabled = true;
+    loginButton.setAttribute('aria-busy', 'true');
+    setCredentialInvalid(false);
 
-    ['id', 'pw'].forEach(field => {
-        const inputElement = document.getElementById(field);
-        inputElement.addEventListener('input', event =>
-            onChangeHandler(event, field === 'id' ? 'id' : 'password'),
-        );
+    try {
+        const { ok, status, code } = await userLogin(email, password);
 
-        if (field === 'id') {
-            inputElement.addEventListener('focusout', event =>
-                lottieAnimation(validEmail(event.target.value) ? 1 : 2),
+        if (!ok || status !== HTTP_OK) {
+            updateHelperText(
+                code === 'INVALID_INPUT'
+                    ? '*입력값을 확인해주세요.'
+                    : '*입력하신 계정 정보가 정확하지 않았습니다.',
             );
+            setCredentialInvalid(true);
+            return;
         }
-    });
 
-    document
-        .getElementById('id')
-        .addEventListener('input', event => validateEmail(event.target));
+        updateHelperText();
+        location.href = '/html/index.html';
+    } catch (error) {
+        console.error('로그인 요청 실패:', error);
+        updateHelperText('*로그인에 실패했습니다. 잠시 뒤 다시 시도해주세요.');
+        setCredentialInvalid(true);
+    } finally {
+        isSubmitting = false;
+        loginButton.removeAttribute('aria-busy');
+        loginButton.disabled =
+            !loginData.id ||
+            !validEmail(loginData.id) ||
+            !loginData.password ||
+            loginData.password.length < MIN_PASSWORD_LENGTH;
+    }
 };
 
-const onChangeHandler = (event, uid) => {
-    loginData[uid] = event.target.value;
-    observeSignupData();
+const validateEmailCharacters = input => {
+    const validCharacters = /^[A-Za-z0-9@._-]*$/;
+    if (!validCharacters.test(input.value)) {
+        input.value = input.value.replace(/[^A-Za-z0-9@._-]/g, '');
+    }
 };
 
-const validateEmail = input => {
-    const regex = /^[A-Za-z0-9@.]+$/;
-    if (!regex.test(input.value)) input.value = input.value.slice(0, -1);
+const clearLottieAnimation = () => {
+    const container = document.getElementById('lottie-animation');
+    if (lottieInstance) {
+        lottieInstance.destroy();
+        lottieInstance = null;
+    }
+    if (container) container.innerHTML = '';
 };
 
-let lottieInstance = null;
 const lottieAnimation = type => {
     const container = document.getElementById('lottie-animation');
+    if (!container || !window.lottie) return;
+
     const animationPaths = [
         '/public/check_anim.json',
         '/public/denied_anim.json',
     ];
-    if (lottieInstance) lottieInstance.destroy();
-    container.innerHTML = '';
+
+    clearLottieAnimation();
     lottieInstance = window.lottie.loadAnimation({
         container,
-        renderer: 'svg',
+        renderer: 'canvas',
         loop: false,
         autoplay: true,
         path: animationPaths[type - 1],
     });
 };
 
-const init = async () => {
-    await authCheckReverse();
-    observeSignupData();
-    prependChild(document.body, Header('커뮤니티', 0));
+const eventSet = () => {
+    authForm?.addEventListener('submit', event => {
+        event.preventDefault();
+        loginClick();
+    });
+
+    emailInput.addEventListener('input', event => {
+        validateEmailCharacters(event.target);
+        loginData.id = event.target.value;
+        observeLoginData();
+    });
+
+    passwordInput.addEventListener('input', event => {
+        loginData.password = event.target.value;
+        observeLoginData();
+    });
+
+    emailInput.addEventListener('focusout', event => {
+        const value = event.target.value;
+        if (!value) {
+            clearLottieAnimation();
+            return;
+        }
+        lottieAnimation(validEmail(value) ? 1 : 2);
+    });
+};
+
+const init = () => {
+    prependChild(document.body, Header('로그인', 0));
+    observeLoginData();
     eventSet();
-    localStorage.clear();
+
+    authCheckReverse().catch(error => {
+        console.error('로그인 상태 확인 실패:', error);
+    });
 };
 
 init();

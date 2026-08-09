@@ -13,8 +13,6 @@ const port = 8080;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-app.use(express.static(__dirname));
-
 app.get('/config.js', (req, res) => {
     const apiBaseUrl = process.env.API_BASE_URL || '';
     res.set('Cache-Control', 'no-store');
@@ -25,8 +23,10 @@ app.get('/config.js', (req, res) => {
     );
 });
 
+app.use(express.static(__dirname));
+
 app.get('/', (req, res) => {
-    res.redirect('/html/index.html');
+    res.sendFile(`${__dirname}/html/landing.html`);
 });
 
 app.listen(port, () => {

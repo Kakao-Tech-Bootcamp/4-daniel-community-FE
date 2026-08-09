@@ -2,76 +2,486 @@
 @import url('../component/board/boardItem.css');
 @import url('../component/header/header.css');
 
-.write {
-    width: 86%;
+.feedPage {
+    width: min(100%, 1040px);
+    padding-top: 44px;
+}
+
+.feedIntro {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+    align-items: end;
+    gap: 44px;
+    overflow: hidden;
+    padding: 42px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-xl);
+    color: #ffffff;
+    background: #202124;
+    box-shadow: var(--shadow-md);
+}
+
+.feedIntro::before {
+    content: '';
+    position: absolute;
+    top: -86px;
+    right: -68px;
+    width: 220px;
+    height: 220px;
+    border: 34px solid rgba(254, 229, 0, 0.92);
+    border-radius: 50%;
+}
+
+.feedIntro::after {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto auto;
+    width: 42%;
+    height: 64%;
+    pointer-events: none;
+    background:
+        linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    background-size: 22px 22px;
+    mask-image: linear-gradient(to bottom left, #000000, transparent 78%);
+}
+
+.introCopy,
+.noticeGuide {
+    position: relative;
+    z-index: 1;
+}
+
+.introEyebrow,
+.sectionEyebrow {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    row-gap: 10px;
-    padding: 30px 0 12px 0;
-}
-
-.write h2 {
-    width: 100%;
+    gap: 8px;
     margin: 0;
-    color: #000;
-    font-size: 15px;
-    font-weight: 400;
-    line-height: 1.45;
-    letter-spacing: 0;
-    text-align: center;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
 }
 
-.write h2 b {
-    font-weight: 700;
+.introEyebrow {
+    color: var(--color-brand);
+}
+
+.introEyebrow span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-brand);
+    box-shadow: 0 0 0 4px rgba(254, 229, 0, 0.12);
+}
+
+.introCopy h1 {
+    max-width: 570px;
+    margin: 18px 0 0;
+    color: #ffffff;
+    font-size: clamp(32px, 4vw, 48px);
+    font-weight: 850;
+    line-height: 1.2;
+    letter-spacing: -0.05em;
+    word-break: keep-all;
+}
+
+.introDescription {
+    max-width: 570px;
+    margin: 18px 0 0;
+    color: rgba(255, 255, 255, 0.64);
+    font-size: 15px;
+    line-height: 1.75;
+    letter-spacing: -0.015em;
+    word-break: keep-all;
+}
+
+.noticeGuide {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 13px;
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.065);
+    backdrop-filter: blur(8px);
+}
+
+.noticeGuideMark {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 11px;
+    color: var(--color-ink);
+    background: var(--color-brand);
+    font-size: 17px;
+    font-weight: 900;
+    font-family: inherit;
+}
+
+.noticeGuide h2 {
+    margin: 1px 0 0;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 750;
+    letter-spacing: -0.02em;
+}
+
+.noticeGuide p {
+    margin: 7px 0 0;
+    color: rgba(255, 255, 255, 0.58);
+    font-size: 12px;
+    line-height: 1.65;
+    word-break: keep-all;
+}
+
+.feedContent {
+    margin-top: 34px;
+    padding: 34px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-sm);
+}
+
+.feedHeading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.sectionEyebrow {
+    color: var(--color-muted);
+}
+
+.feedHeading h2 {
+    margin: 9px 0 0;
+    color: var(--color-ink);
+    font-size: 30px;
+    font-weight: 850;
+    line-height: 1.3;
+    letter-spacing: -0.04em;
+}
+
+.searchSummary {
+    margin: 8px 0 0;
+    color: var(--color-muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.writeButton {
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding-inline: 17px;
+}
+
+.writeButton span {
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1;
 }
 
 .searchRow {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
-}
-
-.write a {
-    width: 88px;
-    height: 34px;
-    margin-left: auto;
-    padding: 0;
-    border-radius: 8px;
-    background-color: #aca0eb;
-    color: #ffffff;
-    font-size: 12px;
-    font-weight: 700;
-    line-height: 34px;
-    letter-spacing: 0;
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(172, 160, 235, 0.35);
-}
-
-.write a:hover {
-    background-color: #7f6aee;
-}
-
-.boardList {
-    width: 86%;
-    height: auto;
-    display: flex;
-    flex-direction: column;
-    row-gap: 10px;
-    overflow: visible;
-    padding-bottom: 24px;
+    margin-top: 26px;
 }
 
 .searchBox {
+    width: 100%;
+    min-height: 52px;
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 5px 5px 17px;
+    border: 1px solid var(--color-border-strong);
+    border-radius: 13px;
+    background: var(--color-surface);
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.searchBox:focus-within {
+    border-color: var(--color-info);
+    box-shadow: 0 0 0 3px rgba(79, 110, 247, 0.1);
+}
+
+.searchIcon {
+    position: relative;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--color-muted);
+    border-radius: 50%;
+}
+
+.searchIcon::after {
+    content: '';
+    position: absolute;
+    width: 7px;
+    height: 2px;
+    right: -6px;
+    bottom: -3px;
+    border-radius: 2px;
+    background: var(--color-muted);
+    transform: rotate(45deg);
+    transform-origin: left center;
+}
+
+.searchInput {
+    width: 100%;
+    min-width: 0;
+    height: 40px;
+    padding: 0 4px;
+    border: 0;
+    outline: 0;
+    color: var(--color-ink);
+    background: transparent;
+    font-size: 14px;
+}
+
+.searchInput::-webkit-search-cancel-button {
     display: none;
 }
 
-.sortRow {
+.searchClearButton {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    color: var(--color-muted);
+    background: var(--color-surface-subtle);
+    font-size: 19px;
+    line-height: 1;
+}
+
+.searchClearButton:hover {
+    color: var(--color-ink);
+    background: #eff0ed;
+}
+
+.searchHint {
+    margin: 8px 2px 0;
+    color: var(--color-muted-light);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.boardList {
+    width: 100%;
+    display: grid;
+    gap: 14px;
+    margin-top: 25px;
+}
+
+.feedState {
+    width: 100%;
+}
+
+.feedState:empty {
     display: none;
 }
 
-.isHidden {
-    display: none;
+.statePanel {
+    min-height: 210px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.stateMark {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    color: var(--color-ink);
+    background: var(--color-surface-subtle);
+    font-size: 18px;
+    font-weight: 850;
+}
+
+.statePanel h3 {
+    margin: 0;
+    color: var(--color-ink);
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+}
+
+.statePanel p {
+    max-width: 430px;
+    margin: 9px 0 0;
+    color: var(--color-muted);
+    font-size: 13px;
+    line-height: 1.65;
+    word-break: keep-all;
+}
+
+.stateAction {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 19px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 9px;
+    color: var(--color-ink);
+    background: var(--color-brand);
+    font-size: 13px;
+    font-weight: 750;
+}
+
+.loadingState {
+    min-height: 108px;
+    flex-direction: row;
+    gap: 12px;
+    padding-block: 28px;
+}
+
+.loadingState p {
+    margin: 0;
+}
+
+.stateSpinner {
+    width: 22px;
+    height: 22px;
+    flex: 0 0 22px;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-ink);
+    border-radius: 50%;
+    animation: feed-spin 700ms linear infinite;
+}
+
+.endState {
+    min-height: auto;
+    padding: 26px 10px 6px;
+}
+
+.endState p {
+    margin: 0;
+    color: var(--color-muted-light);
+    font-size: 12px;
+}
+
+@keyframes feed-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 860px) {
+    .feedIntro {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+        gap: 30px;
+    }
+
+    .noticeGuide {
+        max-width: 600px;
+    }
+}
+
+@media (max-width: 767px) {
+    .feedPage {
+        padding-top: 24px;
+    }
+
+    .feedIntro {
+        gap: 26px;
+        padding: 30px 24px;
+        border-radius: 20px;
+    }
+
+    .feedIntro::before {
+        top: -102px;
+        right: -86px;
+        width: 190px;
+        height: 190px;
+        border-width: 28px;
+    }
+
+    .introCopy h1 {
+        font-size: 34px;
+    }
+
+    .introDescription {
+        font-size: 14px;
+    }
+
+    .feedContent {
+        margin-top: 20px;
+        padding: 24px 20px;
+        border-radius: 16px;
+    }
+
+    .feedHeading h2 {
+        font-size: 25px;
+    }
+
+    .searchRow {
+        margin-top: 22px;
+    }
+}
+
+@media (max-width: 520px) {
+    .feedHeading {
+        align-items: center;
+    }
+
+    .writeButton {
+        min-height: 40px;
+        padding-inline: 13px;
+        font-size: 13px;
+    }
+
+    .searchBox {
+        grid-template-columns: 20px minmax(0, 1fr);
+        gap: 8px;
+        padding-left: 14px;
+    }
+
+    .searchClearButton {
+        display: none;
+    }
+
+    .searchHint {
+        font-size: 10px;
+    }
+
+    .noticeGuide {
+        grid-template-columns: 34px minmax(0, 1fr);
+        padding: 15px;
+    }
+
+    .noticeGuideMark {
+        width: 34px;
+        height: 34px;
+    }
+}
+
+@media (max-width: 370px) {
+    .feedContent {
+        padding-inline: 16px;
+    }
+
+    .writeButton span {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .stateSpinner {
+        animation: none;
+        border-color: var(--color-ink);
+    }
 }
