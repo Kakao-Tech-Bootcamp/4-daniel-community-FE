@@ -59,14 +59,16 @@ jobs:
               "set -eu",
               "trap 'sudo docker logout >/dev/null 2>&1 || true' EXIT",
               "printf '%s' '${docker_password_b64}' | base64 --decode | sudo docker login --username '${DOCKER_USERNAME}' --password-stdin",
-              "sudo docker pull ${IMAGE_NAME}",
+              "sudo docker pull --quiet ${IMAGE_NAME}",
               "sudo docker stop ${CONTAINER_NAME} || true",
               "sudo docker rm ${CONTAINER_NAME} || true",
               "sudo docker run -d --name ${CONTAINER_NAME} --restart unless-stopped -p 8080:8080 ${IMAGE_NAME}",
               "sudo docker inspect --format='container image={{.Config.Image}} image id={{.Image}}' ${CONTAINER_NAME}",
               "sudo docker inspect --format='{{.Config.Image}}' ${CONTAINER_NAME} | grep -Fx '${IMAGE_NAME}'",
-              "sudo docker exec ${CONTAINER_NAME} node -e 'fetch(\"http://127.0.0.1:8080/\").then(response => { if (!response.ok) throw new Error(\"HTTP \" + response.status); return response.text(); }).then(html => { if (!html.includes(\"<title>KTB HUB |\")) throw new Error(\"Unexpected landing page\"); })'"
-            ]
+              "sudo docker exec ${CONTAINER_NAME} node -e 'fetch(\"http://127.0.0.1:8080/\").then(response => { if (!response.ok) throw new Error(\"HTTP \" + response.status); return response.text(); }).then(html => { if (!html.includes(\"<title>KTB HUB |\")) throw new Error(\"Unexpected landing page\"); })'",
+              "sudo docker image prune --force"
+            ],
+            "executionTimeout": ["3600"]
           }
           JSON
 
